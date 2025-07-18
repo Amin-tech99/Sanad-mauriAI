@@ -31,7 +31,10 @@ import {
   type InsertWordAlternative,
   wordSuggestions,
   type WordSuggestion,
-  type InsertWordSuggestion
+  type InsertWordSuggestion,
+  platformFeatures,
+  type PlatformFeature,
+  type InsertPlatformFeature
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, sql } from "drizzle-orm";
@@ -105,6 +108,12 @@ export interface IStorage {
   createWordSuggestion(suggestion: InsertWordSuggestion): Promise<WordSuggestion>;
   getWordSuggestionsByStatus(status: string): Promise<WordSuggestion[]>;
   updateWordSuggestionStatus(id: number, status: string, reviewedBy: number, reviewNotes?: string): Promise<void>;
+  
+  // Platform Features
+  getAllPlatformFeatures(): Promise<PlatformFeature[]>;
+  updatePlatformFeature(featureKey: string, isEnabled: boolean, updatedBy: number): Promise<void>;
+  getPlatformFeature(featureKey: string): Promise<PlatformFeature | undefined>;
+  initializePlatformFeatures(): Promise<void>;
 
   sessionStore: session.Store;
 }
@@ -546,6 +555,196 @@ export class DatabaseStorage implements IStorage {
         reviewedAt: new Date()
       })
       .where(eq(wordSuggestions.id, id));
+  }
+  
+  // Platform Features implementation
+  async getAllPlatformFeatures(): Promise<PlatformFeature[]> {
+    return await db.select()
+      .from(platformFeatures)
+      .orderBy(platformFeatures.category, platformFeatures.featureName);
+  }
+  
+  async updatePlatformFeature(featureKey: string, isEnabled: boolean, updatedBy: number): Promise<void> {
+    await db.update(platformFeatures)
+      .set({ 
+        isEnabled, 
+        updatedBy,
+        updatedAt: new Date()
+      })
+      .where(eq(platformFeatures.featureKey, featureKey));
+  }
+  
+  async getPlatformFeature(featureKey: string): Promise<PlatformFeature | undefined> {
+    const [feature] = await db.select()
+      .from(platformFeatures)
+      .where(eq(platformFeatures.featureKey, featureKey));
+    return feature || undefined;
+  }
+  
+  async initializePlatformFeatures(): Promise<void> {
+    const defaultFeatures: InsertPlatformFeature[] = [
+      // Core Features
+      {
+        featureKey: "user_management",
+        featureName: "إدارة المستخدمين",
+        description: "إمكانية إنشاء وإدارة المستخدمين والأدوار",
+        category: "core",
+        isEnabled: true,
+        dependencies: null,
+        updatedBy: null
+      },
+      {
+        featureKey: "source_management",
+        featureName: "إدارة المصادر",
+        description: "إمكانية إضافة وإدارة مصادر النصوص",
+        category: "core",
+        isEnabled: true,
+        dependencies: null,
+        updatedBy: null
+      },
+      {
+        featureKey: "template_management",
+        featureName: "إدارة القوالب",
+        description: "إمكانية إنشاء وإدارة قوالب التعليمات",
+        category: "core",
+        isEnabled: true,
+        dependencies: null,
+        updatedBy: null
+      },
+      {
+        featureKey: "work_packet_creation",
+        featureName: "إنشاء حزم العمل",
+        description: "إمكانية إنشاء وتوزيع حزم العمل",
+        category: "core",
+        isEnabled: true,
+        dependencies: ["source_management", "template_management"],
+        updatedBy: null
+      },
+      
+      // Translation Features
+      {
+        featureKey: "translator_workspace",
+        featureName: "مساحة عمل المترجم",
+        description: "واجهة العمل الرئيسية للمترجمين",
+        category: "translation",
+        isEnabled: true,
+        dependencies: null,
+        updatedBy: null
+      },
+      {
+        featureKey: "approved_terms",
+        featureName: "المصطلحات المعتمدة",
+        description: "نظام المصطلحات المعتمدة والاقتراحات التلقائية",
+        category: "translation",
+        isEnabled: true,
+        dependencies: null,
+        updatedBy: null
+      },
+      {
+        featureKey: "style_tags",
+        featureName: "تصنيفات الأسلوب",
+        description: "نظام تصنيف الأساليب اللغوية",
+        category: "translation",
+        isEnabled: true,
+        dependencies: null,
+        updatedBy: null
+      },
+      {
+        featureKey: "contextual_lexicon",
+        featureName: "المعجم السياقي",
+        description: "نظام المعجم السياقي والبدائل اللغوية",
+        category: "translation",
+        isEnabled: true,
+        dependencies: ["style_tags"],
+        updatedBy: null
+      },
+      {
+        featureKey: "word_suggestions",
+        featureName: "اقتراحات الكلمات",
+        description: "نظام اقتراح الكلمات من المترجمين",
+        category: "translation",
+        isEnabled: true,
+        dependencies: ["contextual_lexicon", "style_tags"],
+        updatedBy: null
+      },
+      {
+        featureKey: "contextual_word_assistant",
+        featureName: "مساعد الكلمات السياقي",
+        description: "المساعد الذكي لاقتراح الكلمات أثناء الترجمة",
+        category: "translation",
+        isEnabled: true,
+        dependencies: ["contextual_lexicon", "style_tags"],
+        updatedBy: null
+      },
+      
+      // Quality Features
+      {
+        featureKey: "qa_review",
+        featureName: "مراجعة الجودة",
+        description: "نظام مراجعة الجودة والموافقة على الترجمات",
+        category: "quality",
+        isEnabled: true,
+        dependencies: null,
+        updatedBy: null
+      },
+      {
+        featureKey: "qa_feedback",
+        featureName: "ملاحظات المراجعة",
+        description: "إمكانية إضافة ملاحظات وتعليقات على الترجمات",
+        category: "quality",
+        isEnabled: true,
+        dependencies: ["qa_review"],
+        updatedBy: null
+      },
+      
+      // Data Features
+      {
+        featureKey: "data_export",
+        featureName: "تصدير البيانات",
+        description: "إمكانية تصدير البيانات بصيغ مختلفة",
+        category: "data",
+        isEnabled: true,
+        dependencies: null,
+        updatedBy: null
+      },
+      {
+        featureKey: "dashboard_analytics",
+        featureName: "إحصائيات لوحة التحكم",
+        description: "عرض الإحصائيات والتحليلات في لوحة التحكم",
+        category: "data",
+        isEnabled: true,
+        dependencies: null,
+        updatedBy: null
+      },
+      
+      // User Features
+      {
+        featureKey: "user_authentication",
+        featureName: "المصادقة",
+        description: "نظام تسجيل الدخول والمصادقة",
+        category: "user",
+        isEnabled: true,
+        dependencies: null,
+        updatedBy: null
+      },
+      {
+        featureKey: "role_based_access",
+        featureName: "التحكم بالصلاحيات",
+        description: "نظام الأدوار والصلاحيات",
+        category: "user",
+        isEnabled: true,
+        dependencies: ["user_authentication"],
+        updatedBy: null
+      }
+    ];
+    
+    // Insert only features that don't exist
+    for (const feature of defaultFeatures) {
+      const existing = await this.getPlatformFeature(feature.featureKey);
+      if (!existing) {
+        await db.insert(platformFeatures).values(feature);
+      }
+    }
   }
 }
 

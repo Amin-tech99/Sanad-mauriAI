@@ -1,4 +1,5 @@
 import { useAuth } from "@/hooks/use-auth";
+import { useFeature } from "@/hooks/use-feature";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import { useMobileMenu } from "@/hooks/use-mobile-menu";
@@ -18,6 +19,7 @@ import {
   Languages,
   Tag,
   Library,
+  Shield,
   LogOut,
   X
 } from "lucide-react";
@@ -33,6 +35,7 @@ const roleNavigation = {
     { icon: Tag, text: "تصنيفات الأسلوب", path: "/style-tags" },
     { icon: Library, text: "المعجم السياقي", path: "/contextual-lexicon" },
     { icon: FileText, text: "اقتراحات الكلمات", path: "/word-suggestions" },
+    { icon: Shield, text: "التحكم في المنصة", path: "/platform-control" },
     { icon: Download, text: "تصدير البيانات", path: "/export" },
   ],
   translator: [
@@ -49,10 +52,34 @@ export default function Sidebar() {
   const { user, logoutMutation } = useAuth();
   const [location, setLocation] = useLocation();
   const { isOpen, close } = useMobileMenu();
+  const { isFeatureEnabled } = useFeature();
 
   if (!user) return null;
 
-  const navigation = roleNavigation[user.role as keyof typeof roleNavigation] || [];
+  // Filter navigation based on enabled features
+  const baseNavigation = roleNavigation[user.role as keyof typeof roleNavigation] || [];
+  const navigation = baseNavigation.filter((item) => {
+    // Map navigation items to feature keys
+    const featureMap: Record<string, string> = {
+      "/users": "user_management",
+      "/sources": "source_management",
+      "/templates": "template_management",
+      "/work-packets": "work_packet_creation",
+      "/approved-terms": "approved_terms",
+      "/style-tags": "style_tags",
+      "/contextual-lexicon": "contextual_lexicon",
+      "/word-suggestions": "word_suggestions",
+      "/export": "data_export",
+      "/my-work": "translator_workspace",
+      "/workspace": "translator_workspace",
+      "/qa-queue": "qa_review",
+      "/qa-review": "qa_review",
+      "/": "dashboard_analytics",
+    };
+    
+    const featureKey = featureMap[item.path];
+    return !featureKey || isFeatureEnabled(featureKey);
+  });
 
   const getRoleName = (role: string) => {
     const roleNames = {

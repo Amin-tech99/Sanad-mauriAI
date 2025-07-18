@@ -253,6 +253,23 @@ export const wordSuggestions = pgTable("word_suggestions", {
 export const insertWordSuggestionSchema = createInsertSchema(wordSuggestions)
   .omit({ id: true, createdAt: true, reviewedAt: true });
 
+// Platform Features table for admin control
+export const platformFeatures = pgTable("platform_features", {
+  id: serial("id").primaryKey(),
+  featureKey: text("feature_key").notNull().unique(),
+  featureName: text("feature_name").notNull(),
+  description: text("description"),
+  category: text("category").notNull(), // 'core', 'translation', 'quality', 'data', 'user'
+  isEnabled: boolean("is_enabled").notNull().default(true),
+  dependencies: text("dependencies").array(), // Array of feature keys this depends on
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedBy: integer("updated_by").references(() => users.id),
+});
+
+// Insert schema for platform features
+export const insertPlatformFeatureSchema = createInsertSchema(platformFeatures)
+  .omit({ id: true, updatedAt: true });
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -275,3 +292,5 @@ export type WordAlternative = typeof wordAlternatives.$inferSelect;
 export type InsertWordAlternative = z.infer<typeof insertWordAlternativeSchema>;
 export type WordSuggestion = typeof wordSuggestions.$inferSelect;
 export type InsertWordSuggestion = z.infer<typeof insertWordSuggestionSchema>;
+export type PlatformFeature = typeof platformFeatures.$inferSelect;
+export type InsertPlatformFeature = z.infer<typeof insertPlatformFeatureSchema>;

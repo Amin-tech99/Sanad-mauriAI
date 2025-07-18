@@ -575,6 +575,86 @@ export function registerRoutes(app: Express): Server {
       next(error);
     }
   });
+  
+  // Platform Features routes
+  app.get("/api/platform-features", requireAuth, requireRole(["admin"]), async (req, res, next) => {
+    try {
+      const features = await storage.getAllPlatformFeatures();
+      res.json(features);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  app.patch("/api/platform-features/:featureKey", requireAuth, requireRole(["admin"]), async (req, res, next) => {
+    try {
+      const { featureKey } = req.params;
+      const { isEnabled } = req.body;
+      
+      if (typeof isEnabled !== "boolean") {
+        return res.status(400).json({ error: "isEnabled must be a boolean" });
+      }
+      
+      // Check if feature exists
+      const feature = await storage.getPlatformFeature(featureKey);
+      if (!feature) {
+        return res.status(404).json({ error: "Feature not found" });
+      }
+      
+      // Check dependencies - can't disable a feature if other enabled features depend on it
+      if (!isEnabled) {
+        const allFeatures = await storage.getAllPlatformFeatures();
+        const dependentFeatures = allFeatures.filter(f => 
+          f.isEnabled && 
+          f.dependencies && 
+          f.dependencies.includes(featureKey)
+        );
+        
+        if (dependentFeatures.length > 0) {
+          return res.status(400).json({ 
+            error: "Cannot disable this feature as other features depend on it",
+            dependentFeatures: dependentFeatures.map(f => f.featureName)
+          });
+        }
+      }
+      
+      // Check if all dependencies are enabled before enabling a feature
+      if (isEnabled && feature.dependencies && feature.dependencies.length > 0) {
+        const dependencies = await Promise.all(
+          feature.dependencies.map(dep => storage.getPlatformFeature(dep))
+        );
+        
+        const disabledDependencies = dependencies.filter(dep => dep && !dep.isEnabled);
+        if (disabledDependencies.length > 0) {
+          return res.status(400).json({ 
+            error: "Cannot enable this feature as some dependencies are disabled",
+            disabledDependencies: disabledDependencies.map(d => d!.featureName)
+          });
+        }
+      }
+      
+      await storage.updatePlatformFeature(featureKey, isEnabled, req.user!.id);
+      res.json({ message: "Feature updated successfully" });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Feature check endpoint for frontend
+  app.get("/api/feature-check/:featureKey", requireAuth, async (req, res, next) => {
+    try {
+      const { featureKey } = req.params;
+      const feature = await storage.getPlatformFeature(featureKey);
+      
+      if (!feature) {
+        return res.json({ isEnabled: false });
+      }
+      
+      res.json({ isEnabled: feature.isEnabled });
+    } catch (error) {
+      next(error);
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

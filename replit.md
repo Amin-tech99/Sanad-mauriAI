@@ -46,6 +46,7 @@ The system implements three distinct user roles with hierarchical permissions:
 - **Work Items**: Individual translation tasks with status progression
 - **Work Item Assignments**: User-specific task assignments with tracking
 - **Approved Terms**: Hassaniya consistency system with auto-suggestions for approved terminology
+- **Platform Features**: Database-driven feature toggle system with dependency tracking
 
 ### Status-Driven Workflow
 Work items progress through defined states:
@@ -63,6 +64,14 @@ Work items progress through defined states:
 
 ## Key Features
 
+### Platform Control System
+- **Comprehensive Feature Management**: Admins can enable/disable any feature on the platform
+- **Dependency Management**: Automatically handles feature dependencies to prevent conflicts
+- **Category Organization**: Features grouped by category (core, translation, quality, data, user)
+- **Real-time Updates**: Changes take effect immediately across the platform
+- **Feature Statistics**: Dashboard showing enabled/disabled features and dependencies
+- **Safe Guards**: Critical features protected from accidental disabling
+
 ### Hassaniya Consistency System
 - **Auto-Suggestions**: As translators type Arabic words, approved Hassaniya terms appear as suggestions
 - **Smart Detection**: System detects when translators are typing Arabic text and shows relevant approved terms
@@ -70,6 +79,7 @@ Work items progress through defined states:
 - **Frequency Tracking**: Terms are tracked by usage frequency to show most relevant suggestions first
 - **Admin Management**: Admins can add and manage approved terms through dedicated interface
 - **Context Support**: Terms can include context and categories for disambiguation
+- **Feature Gating**: All assistance features can be controlled through platform settings
 
 ## External Dependencies
 

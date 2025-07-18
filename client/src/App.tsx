@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/use-auth";
+import { FeatureProvider } from "@/hooks/use-feature";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { ErrorBoundary } from "@/components/error-boundary";
 import AuthPage from "@/pages/auth-page";
@@ -17,6 +18,7 @@ import ApprovedTerms from "@/pages/approved-terms";
 import StyleTags from "@/pages/style-tags";
 import ContextualLexicon from "@/pages/contextual-lexicon";
 import WordSuggestions from "@/pages/word-suggestions";
+import PlatformControl from "@/pages/platform-control";
 import MyWork from "@/pages/my-work";
 import Workspace from "@/pages/workspace";
 import QAQueue from "@/pages/qa-queue";
@@ -35,6 +37,7 @@ function Router() {
       <ProtectedRoute path="/style-tags" component={StyleTags} />
       <ProtectedRoute path="/contextual-lexicon" component={ContextualLexicon} />
       <ProtectedRoute path="/word-suggestions" component={WordSuggestions} />
+      <ProtectedRoute path="/platform-control" component={PlatformControl} />
       <ProtectedRoute path="/export" component={ExportPage} />
       <ProtectedRoute path="/my-work" component={MyWork} />
       <ProtectedRoute path="/workspace" component={() => <Workspace />} />
@@ -53,12 +56,14 @@ function App() {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <TooltipProvider>
-            <div className="rtl-container">
-              <Toaster />
-              <Router />
-            </div>
-          </TooltipProvider>
+          <FeatureProvider>
+            <TooltipProvider>
+              <div className="rtl-container">
+                <Toaster />
+                <Router />
+              </div>
+            </TooltipProvider>
+          </FeatureProvider>
         </AuthProvider>
       </QueryClientProvider>
     </ErrorBoundary>

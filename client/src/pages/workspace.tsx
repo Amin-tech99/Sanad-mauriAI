@@ -16,6 +16,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import ApprovedTermsSuggestions from "@/components/approved-terms-suggestions";
 import ContextualWordAssistant from "@/components/contextual-word-assistant";
 import WordSuggestionDialog from "@/components/word-suggestion-dialog";
+import { FeatureGate } from "@/components/feature-gate";
 import type { WorkItem, ApprovedTerm, StyleTag } from "@shared/schema";
 
 export default function Workspace() {
@@ -501,32 +502,38 @@ export default function Workspace() {
         </main>
         
         {/* Approved Terms Suggestions */}
-        <ApprovedTermsSuggestions
-          searchQuery={suggestionQuery}
-          onSelectTerm={handleSelectTerm}
-          position={suggestionPosition}
-          isVisible={showSuggestions}
-          onClose={() => setShowSuggestions(false)}
-        />
+        <FeatureGate featureKey="approved_terms">
+          <ApprovedTermsSuggestions
+            searchQuery={suggestionQuery}
+            onSelectTerm={handleSelectTerm}
+            position={suggestionPosition}
+            isVisible={showSuggestions}
+            onClose={() => setShowSuggestions(false)}
+          />
+        </FeatureGate>
         
         {/* Contextual Word Assistant */}
-        <ContextualWordAssistant
-          styleTag={currentItem?.styleTag}
-          currentText={translation}
-          onWordSelect={setTranslation}
-          textareaRef={textareaRef}
-        />
+        <FeatureGate featureKey="contextual_word_assistant">
+          <ContextualWordAssistant
+            styleTag={currentItem?.styleTag}
+            currentText={translation}
+            onWordSelect={setTranslation}
+            textareaRef={textareaRef}
+          />
+        </FeatureGate>
         
         {/* Word Suggestion Dialog */}
-        {completedWorkItem && (
-          <WordSuggestionDialog
-            open={showWordSuggestionDialog}
-            onClose={() => setShowWordSuggestionDialog(false)}
-            sourceText={completedWorkItem.sourceText}
-            translatedText={completedWorkItem.targetText}
-            workItemId={completedWorkItem.id}
-          />
-        )}
+        <FeatureGate featureKey="word_suggestions">
+          {completedWorkItem && (
+            <WordSuggestionDialog
+              open={showWordSuggestionDialog}
+              onClose={() => setShowWordSuggestionDialog(false)}
+              sourceText={completedWorkItem.sourceText}
+              translatedText={completedWorkItem.targetText}
+              workItemId={completedWorkItem.id}
+            />
+          )}
+        </FeatureGate>
       </div>
     </div>
   );
