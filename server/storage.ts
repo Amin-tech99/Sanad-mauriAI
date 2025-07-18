@@ -55,6 +55,7 @@ export interface IStorage {
   getAllSources(): Promise<Source[]>;
   getSourceById(id: number): Promise<Source | undefined>;
   updateSourceStatus(id: number, status: string): Promise<void>;
+  deleteSource(id: number): Promise<void>;
   
   createTemplate(template: InsertTemplate): Promise<InstructionTemplate>;
   getAllTemplates(): Promise<InstructionTemplate[]>;
@@ -173,6 +174,10 @@ export class DatabaseStorage implements IStorage {
 
   async updateSourceStatus(id: number, status: string): Promise<void> {
     await db.update(sources).set({ status }).where(eq(sources.id, id));
+  }
+
+  async deleteSource(id: number): Promise<void> {
+    await db.delete(sources).where(eq(sources.id, id));
   }
 
   async createTemplate(template: InsertTemplate): Promise<InstructionTemplate> {

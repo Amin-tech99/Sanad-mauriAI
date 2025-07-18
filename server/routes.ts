@@ -68,6 +68,20 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.delete("/api/sources/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid source ID" });
+      }
+      
+      await storage.deleteSource(id);
+      res.status(200).json({ message: "Source deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete source" });
+    }
+  });
+
   // Templates routes
   app.get("/api/templates", requireAuth, async (req, res) => {
     try {
