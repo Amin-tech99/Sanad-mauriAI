@@ -176,7 +176,7 @@ export class DatabaseStorage implements IStorage {
         eq(workItems.assignedTo, userId),
         sql`${workItems.status} IN ('pending', 'in_progress', 'rejected')`
       ))
-      .orderBy(workItems.sequenceNumber);
+      .orderBy(desc(workItems.createdAt), workItems.sequenceNumber);
   }
 
   async getWorkItemsForQA(): Promise<WorkItem[]> {

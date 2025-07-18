@@ -120,11 +120,27 @@
 
   .workspace-panel {
     min-height: 500px;
+    max-height: 600px;
+    overflow-y: auto;
   }
 
   .paragraph-textarea {
     min-height: 400px;
+    max-height: 600px;
     resize: vertical;
+    line-height: 1.8;
+    font-size: 1.05rem;
+  }
+
+  /* Performance optimizations */
+  .workspace-panel,
+  .paragraph-textarea {
+    will-change: scroll-position;
+  }
+
+  /* Smooth transitions */
+  .transition-smooth {
+    transition: all 0.2s ease-in-out;
   }
 
   /* RTL-specific styles */

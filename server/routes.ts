@@ -120,10 +120,22 @@ export function registerRoutes(app: Express): Server {
       
       let textUnits: string[];
       if (unitType === "paragraph") {
-        textUnits = source.content.split('\n\n').filter(p => p.trim().length > 0);
+        // Split by double newlines or multiple newlines, filter empty paragraphs
+        textUnits = source.content
+          .split(/\n\s*\n/)
+          .map(p => p.trim())
+          .filter(p => p.length > 20); // Minimum 20 characters for a valid paragraph
       } else {
-        // Sentence splitting (basic implementation)
-        textUnits = source.content.split(/[.!?]+/).filter(s => s.trim().length > 0);
+        // Enhanced Arabic sentence splitting
+        // Handle Arabic punctuation: ؟ ! . ؛ ،
+        textUnits = source.content
+          .split(/[.!?؟؛]+/)
+          .map(s => s.trim())
+          .filter(s => s.length > 10) // Minimum 10 characters for a valid sentence
+          .map(s => {
+            // Remove trailing commas or incomplete punctuation
+            return s.replace(/[،,]+$/, '').trim();
+          });
       }
       
       // Create work items

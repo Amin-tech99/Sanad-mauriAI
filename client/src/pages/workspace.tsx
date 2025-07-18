@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -10,8 +10,9 @@ import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
-import { Save, Send, ArrowRight, ArrowLeft, AlertTriangle } from "lucide-react";
+import { Save, Send, ArrowRight, ArrowLeft, AlertTriangle, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import type { WorkItem } from "@shared/schema";
 
 export default function Workspace() {
@@ -20,6 +21,8 @@ export default function Workspace() {
   const { toast } = useToast();
   const [translation, setTranslation] = useState("");
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   if (user?.role !== "translator") {
     return (
@@ -36,6 +39,8 @@ export default function Workspace() {
   const { data: workItems = [], isLoading } = useQuery<WorkItem[]>({
     queryKey: ["/api/my-work"],
     enabled: user?.role === "translator",
+    refetchInterval: 30000, // Refresh every 30 seconds
+    staleTime: 20000, // Consider data stale after 20 seconds
   });
 
   const currentItem = workItems[currentItemIndex];
@@ -47,12 +52,15 @@ export default function Workspace() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/my-work"] });
+      setLastSaved(new Date());
+      setIsSaving(false);
       toast({
         title: "تم الحفظ بنجاح",
         description: "تم حفظ الترجمة بنجاح",
       });
     },
     onError: () => {
+      setIsSaving(false);
       toast({
         title: "خطأ",
         description: "فشل في حفظ الترجمة",
@@ -129,6 +137,42 @@ export default function Workspace() {
     }
   }, [currentItem]);
 
+  // Auto-save functionality
+  useEffect(() => {
+    if (!currentItem || !translation.trim() || translation === currentItem.targetText) {
+      return;
+    }
+
+    const autoSaveTimer = setTimeout(() => {
+      setIsSaving(true);
+      updateMutation.mutate({
+        id: currentItem.id,
+        targetText: translation,
+      });
+    }, 3000); // Auto-save after 3 seconds of no typing
+
+    return () => clearTimeout(autoSaveTimer);
+  }, [translation, currentItem]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl/Cmd + S to save
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleSaveDraft();
+      }
+      // Ctrl/Cmd + Enter to submit
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        handleSubmitForQA();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [translation, currentItem]);
+
   if (user?.role !== "translator") {
     return (
       <div className="flex h-screen">
@@ -154,7 +198,8 @@ export default function Workspace() {
           <Header title="مساحة العمل" />
           <main className="p-6">
             <div className="text-center py-8">
-              <p className="text-[var(--project-text-secondary)] arabic-text">جاري التحميل...</p>
+              <LoadingSpinner size="lg" className="mx-auto mb-4" />
+              <p className="text-[var(--project-text-secondary)] arabic-text">جاري تحميل مهام الترجمة...</p>
             </div>
           </main>
         </div>
@@ -216,6 +261,18 @@ export default function Workspace() {
                      currentItem.status === "in_progress" ? "قيد التنفيذ" : 
                      currentItem.status === "rejected" ? "مرفوضة" : "أخرى"}
                   </Badge>
+                  {isSaving && (
+                    <Badge className="bg-green-100 text-green-800 arabic-text flex items-center">
+                      <LoadingSpinner size="sm" className="ml-1" />
+                      جاري الحفظ...
+                    </Badge>
+                  )}
+                  {lastSaved && !isSaving && (
+                    <Badge className="bg-gray-100 text-gray-700 arabic-text flex items-center">
+                      <CheckCircle className="w-3 h-3 ml-1" />
+                      تم الحفظ {new Date(lastSaved).toLocaleTimeString('ar-SA')}
+                    </Badge>
+                  )}
                 </div>
               </div>
 
