@@ -1,13 +1,13 @@
 import { create } from "zustand";
 
-interface MobileMenuStore {
+interface SidebarStore {
   isOpen: boolean;
   open: () => void;
   close: () => void;
   toggle: () => void;
 }
 
-export const useMobileMenu = create<MobileMenuStore>((set) => ({
+export const useMobileMenu = create<SidebarStore>((set) => ({
   isOpen: false,
   open: () => set({ isOpen: true }),
   close: () => set({ isOpen: false }),

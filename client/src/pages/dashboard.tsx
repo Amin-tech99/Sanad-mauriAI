@@ -2,12 +2,14 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FeatureGate } from "@/components/feature-gate";
 import { useAuth } from "@/hooks/use-auth";
+import { useMobileMenu } from "@/hooks/use-mobile-menu";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
 import { CheckCircle, Calendar, Clock, AlertTriangle, TrendingUp, Users } from "lucide-react";
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { isOpen } = useMobileMenu();
 
   const { data: stats, isLoading } = useQuery({
     queryKey: ["/api/dashboard/stats"],
@@ -18,7 +20,7 @@ export default function Dashboard() {
     return (
       <div className="flex h-screen">
         <Sidebar />
-        <div className="flex-1 lg:mr-72">
+        <div className={`flex-1 transition-all duration-300 ${!isOpen ? '' : 'lg:mr-72'}`}>
           <Header title="غير مخول" />
           <main className="p-4 lg:p-6">
             <div className="text-center">
@@ -37,7 +39,7 @@ export default function Dashboard() {
   return (
     <div className="flex h-screen">
       <Sidebar />
-      <div className="flex-1 lg:mr-72">
+      <div className={`flex-1 transition-all duration-300 ${!isOpen ? '' : 'lg:mr-72'}`}>
         <Header title="لوحة التحكم" />
         <main className="p-4 lg:p-6 overflow-y-auto">
           {/* Welcome Section */}

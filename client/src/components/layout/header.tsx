@@ -12,12 +12,13 @@ export default function Header({ title }: HeaderProps) {
   return (
     <header className="bg-white border-b border-[var(--project-border)] px-4 lg:px-6 py-3 lg:py-4">
       <div className="flex items-center justify-between">
-        {/* Mobile Menu Button */}
+        {/* Menu Button - Always visible */}
         <Button
           variant="ghost"
           size="icon"
           onClick={open}
-          className="lg:hidden p-2"
+          className="p-2"
+          title="فتح القائمة الجانبية"
         >
           <Menu className="h-6 w-6" />
         </Button>

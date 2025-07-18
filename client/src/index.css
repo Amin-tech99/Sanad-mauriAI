@@ -189,6 +189,11 @@
       margin-right: 0;
     }
     
+    /* Hide sidebar margin on all screen sizes when closed */
+    .sidebar-closed .lg\:mr-72 {
+      margin-right: 0;
+    }
+    
     /* Mobile sidebar width adjustment */
     .w-72 {
       width: 18rem;

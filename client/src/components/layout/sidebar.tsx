@@ -134,10 +134,10 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Mobile Backdrop */}
+      {/* Backdrop */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-40"
           onClick={close}
         />
       )}
@@ -146,15 +146,15 @@ export default function Sidebar() {
       <div className={cn(
         "fixed top-0 right-0 h-full w-72 bg-[var(--project-sidebar)] border-l border-[var(--project-border)] z-50 shadow-xl flex flex-col",
         "transform transition-transform duration-300 ease-in-out",
-        "lg:translate-x-0",
         isOpen ? "translate-x-0" : "translate-x-full"
       )}>
-        {/* Mobile Close Button */}
+        {/* Close Button - Always visible */}
         <Button
           variant="ghost"
           size="icon"
           onClick={close}
-          className="absolute top-4 left-4 lg:hidden"
+          className="absolute top-4 left-4"
+          title="إغلاق القائمة الجانبية"
         >
           <X className="h-5 w-5" />
         </Button>
