@@ -670,10 +670,10 @@ export function registerRoutes(app: Express): Server {
           platformName: "Project Sanad",
         },
         data: {
-          approvedTerms: await storage.getApprovedTerms({}),
+          approvedTerms: await storage.getAllApprovedTerms(),
           styleTags: await storage.getStyleTags(),
           contextualLexicon: await storage.getContextualLexicon(),
-          wordSuggestions: await storage.getWordSuggestions(),
+          wordSuggestions: await storage.getWordSuggestionsByStatus("approved"),
         },
       };
 
@@ -742,7 +742,7 @@ export function registerRoutes(app: Express): Server {
       if (backupData.data.contextualLexicon) {
         for (const entry of backupData.data.contextualLexicon) {
           try {
-            await storage.createContextualLexicon({
+            await storage.createContextualLexiconEntry({
               styleTagId: entry.styleTagId,
               arabicWord: entry.arabicWord,
               hassaniyaEquivalents: entry.hassaniyaEquivalents,
