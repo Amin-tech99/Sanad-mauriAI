@@ -77,8 +77,13 @@ export function registerRoutes(app: Express): Server {
       
       await storage.deleteSource(id);
       res.status(200).json({ message: "Source deleted successfully" });
-    } catch (error) {
-      res.status(500).json({ error: "Failed to delete source" });
+    } catch (error: any) {
+      if (error.message?.includes('work packets')) {
+        return res.status(400).json({ 
+          error: "لا يمكن حذف هذا المصدر لأنه مرتبط بحزم عمل. يجب حذف حزم العمل أولاً." 
+        });
+      }
+      res.status(500).json({ error: "فشل حذف المصدر" });
     }
   });
 

@@ -177,6 +177,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteSource(id: number): Promise<void> {
+    // First check if there are any work packets using this source
+    const dependentPackets = await db.select()
+      .from(workPackets)
+      .where(eq(workPackets.sourceId, id));
+    
+    if (dependentPackets.length > 0) {
+      throw new Error('Cannot delete source: There are work packets using this source');
+    }
+    
     await db.delete(sources).where(eq(sources.id, id));
   }
 

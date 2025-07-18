@@ -39,10 +39,11 @@ export default function Sources() {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/sources"] });
     },
-    onError: () => {
+    onError: (error: any) => {
+      const errorMessage = error?.message || error?.response?.data?.error || "حدث خطأ أثناء حذف المصدر";
       toast({
         title: "خطأ",
-        description: "حدث خطأ أثناء حذف المصدر",
+        description: errorMessage,
         variant: "destructive",
       });
     },
