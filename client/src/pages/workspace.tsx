@@ -16,6 +16,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import ApprovedTermsSuggestions from "@/components/approved-terms-suggestions";
 import ContextualWordAssistant from "@/components/contextual-word-assistant";
 import WordSuggestionDialog from "@/components/word-suggestion-dialog";
+import ContextualHints from "@/components/contextual-hints";
 import { FeatureGate } from "@/components/feature-gate";
 import type { WorkItem, ApprovedTerm, StyleTag } from "@shared/schema";
 
@@ -33,6 +34,13 @@ export default function Workspace() {
   const [textareaRef, setTextareaRef] = useState<HTMLTextAreaElement | null>(null);
   const [showWordSuggestionDialog, setShowWordSuggestionDialog] = useState(false);
   const [completedWorkItem, setCompletedWorkItem] = useState<{ sourceText: string; targetText: string; id: number } | null>(null);
+  
+  // Contextual hints state
+  const [wordsCompleted, setWordsCompleted] = useState(0);
+  const [sessionStartTime] = useState(Date.now());
+  const [approvedTermsUsed, setApprovedTermsUsed] = useState(0);
+  const [hasUnapprovedTerms, setHasUnapprovedTerms] = useState(false);
+  const [currentWord, setCurrentWord] = useState("");
 
   if (user?.role !== "translator") {
     return (
@@ -51,6 +59,11 @@ export default function Workspace() {
     enabled: user?.role === "translator",
     refetchInterval: 30000, // Refresh every 30 seconds
     staleTime: 20000, // Consider data stale after 20 seconds
+  });
+  
+  const { data: approvedTerms = [] } = useQuery<ApprovedTerm[]>({
+    queryKey: ["/api/approved-terms"],
+    enabled: user?.role === "translator",
   });
 
   const currentItem = workItems[currentItemIndex];
@@ -99,6 +112,9 @@ export default function Workspace() {
         });
         setShowWordSuggestionDialog(true);
       }
+      
+      // Update words completed
+      setWordsCompleted(prev => prev + 1);
       
       setTranslation("");
       toast({
@@ -205,6 +221,15 @@ export default function Workspace() {
     const words = textBeforeCursor.split(/\s+/);
     const currentWord = words[words.length - 1];
     
+    // Update current word for hints
+    setCurrentWord(currentWord);
+    
+    // Check for unapproved Arabic terms
+    const arabicWords = value.match(/[\u0600-\u06FF]+/g) || [];
+    const approvedArabicTerms = new Set(approvedTerms.map(term => term.arabicTerm));
+    const hasUnapproved = arabicWords.some(word => word.length > 2 && !approvedArabicTerms.has(word));
+    setHasUnapprovedTerms(hasUnapproved);
+    
     // Check if typing an Arabic word
     if (currentWord && /[\u0600-\u06FF]/.test(currentWord)) {
       setSuggestionQuery(currentWord);
@@ -242,6 +267,9 @@ export default function Workspace() {
     // Replace with Hassaniya term
     const newText = textWithoutCurrentWord + term.hassaniyaTerm + " " + textAfterCursor;
     setTranslation(newText);
+    
+    // Track approved term usage
+    setApprovedTermsUsed(prev => prev + 1);
     
     // Set cursor position after the inserted term
     setTimeout(() => {
@@ -533,6 +561,19 @@ export default function Workspace() {
               workItemId={completedWorkItem.id}
             />
           )}
+        </FeatureGate>
+        
+        {/* Contextual Hints System */}
+        <FeatureGate featureKey="contextual_hints">
+          <ContextualHints
+            currentWord={currentWord}
+            translationLength={translation.length}
+            approvedTermsCount={approvedTermsUsed}
+            timeSpent={Math.floor((Date.now() - sessionStartTime) / 1000)}
+            wordsCompleted={wordsCompleted}
+            hasUnapprovedTerms={hasUnapprovedTerms}
+            styleTag={currentItem?.styleTag?.name}
+          />
         </FeatureGate>
       </div>
     </div>

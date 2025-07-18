@@ -109,6 +109,17 @@ Work items progress through defined states:
 - **Data Export Capability**: JSON export functionality for external analysis and reporting
 - **Real-time Dashboard**: Live updating metrics with responsive design for mobile and desktop access
 
+### Contextual UI Hints System
+- **Interactive Guidance**: Real-time contextual hints that appear during translation to improve consistency and engagement
+- **Progress Tracking**: Visual progress indicators and milestone celebrations to motivate translators
+- **Consistency Warnings**: Automatic detection and alerts for unapproved terms to maintain quality standards
+- **Style-Specific Tips**: Context-aware hints based on selected translation style (formal/informal/technical)
+- **Smart Timing**: Time-based encouragement and break reminders to prevent fatigue
+- **Achievement System**: Milestone celebrations for words completed and approved terms usage
+- **Non-Intrusive Design**: Dismissible hints with cycling through multiple suggestions
+- **Quality Reminders**: Periodic prompts to review work and maintain high standards
+- **Productivity Tips**: Helpful shortcuts and best practices displayed contextually
+
 ## External Dependencies
 
 ### Database
