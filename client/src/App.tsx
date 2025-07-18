@@ -13,6 +13,7 @@ import Templates from "@/pages/templates";
 import WorkPackets from "@/pages/work-packets";
 import Users from "@/pages/users";
 import ExportPage from "@/pages/export";
+import ApprovedTerms from "@/pages/approved-terms";
 import MyWork from "@/pages/my-work";
 import Workspace from "@/pages/workspace";
 import QAQueue from "@/pages/qa-queue";
@@ -27,6 +28,7 @@ function Router() {
       <ProtectedRoute path="/templates" component={Templates} />
       <ProtectedRoute path="/work-packets" component={WorkPackets} />
       <ProtectedRoute path="/users" component={Users} />
+      <ProtectedRoute path="/approved-terms" component={ApprovedTerms} />
       <ProtectedRoute path="/export" component={ExportPage} />
       <ProtectedRoute path="/my-work" component={MyWork} />
       <ProtectedRoute path="/workspace" component={() => <Workspace />} />

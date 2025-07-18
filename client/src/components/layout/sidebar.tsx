@@ -27,6 +27,7 @@ const roleNavigation = {
     { icon: FileText, text: "نماذج التعليمات", path: "/templates" },
     { icon: Package, text: "إنشاء حزم العمل", path: "/work-packets" },
     { icon: Users, text: "إدارة المستخدمين", path: "/users" },
+    { icon: Languages, text: "المصطلحات المعتمدة", path: "/approved-terms" },
     { icon: Download, text: "تصدير البيانات", path: "/export" },
   ],
   translator: [

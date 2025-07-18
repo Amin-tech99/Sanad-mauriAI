@@ -13,7 +13,8 @@ import Header from "@/components/layout/header";
 import { Save, Send, ArrowRight, ArrowLeft, AlertTriangle, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import type { WorkItem } from "@shared/schema";
+import ApprovedTermsSuggestions from "@/components/approved-terms-suggestions";
+import type { WorkItem, ApprovedTerm } from "@shared/schema";
 
 export default function Workspace() {
   const { user } = useAuth();
@@ -23,6 +24,10 @@ export default function Workspace() {
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestionQuery, setSuggestionQuery] = useState("");
+  const [suggestionPosition, setSuggestionPosition] = useState({ top: 0, left: 0 });
+  const [textareaRef, setTextareaRef] = useState<HTMLTextAreaElement | null>(null);
 
   if (user?.role !== "translator") {
     return (
@@ -172,6 +177,65 @@ export default function Workspace() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [translation, currentItem]);
+  
+  // Handle text changes and detect Arabic words for suggestions
+  const handleTranslationChange = (value: string) => {
+    setTranslation(value);
+    
+    if (!textareaRef) return;
+    
+    const cursorPosition = textareaRef.selectionStart;
+    const textBeforeCursor = value.substring(0, cursorPosition);
+    const words = textBeforeCursor.split(/\s+/);
+    const currentWord = words[words.length - 1];
+    
+    // Check if typing an Arabic word
+    if (currentWord && /[\u0600-\u06FF]/.test(currentWord)) {
+      setSuggestionQuery(currentWord);
+      
+      // Calculate position for suggestions
+      const textarea = textareaRef;
+      const textareaRect = textarea.getBoundingClientRect();
+      
+      // Simple position calculation (can be improved)
+      const position = {
+        top: textareaRect.bottom + 5,
+        left: textareaRect.left,
+      };
+      
+      setSuggestionPosition(position);
+      setShowSuggestions(true);
+    } else {
+      setShowSuggestions(false);
+    }
+  };
+  
+  // Handle term selection
+  const handleSelectTerm = (term: ApprovedTerm) => {
+    if (!textareaRef) return;
+    
+    const cursorPosition = textareaRef.selectionStart;
+    const textBeforeCursor = translation.substring(0, cursorPosition);
+    const textAfterCursor = translation.substring(cursorPosition);
+    
+    // Find the current word being typed
+    const words = textBeforeCursor.split(/\s+/);
+    const currentWord = words[words.length - 1];
+    const textWithoutCurrentWord = textBeforeCursor.substring(0, textBeforeCursor.length - currentWord.length);
+    
+    // Replace with Hassaniya term
+    const newText = textWithoutCurrentWord + term.hassaniyaTerm + " " + textAfterCursor;
+    setTranslation(newText);
+    
+    // Set cursor position after the inserted term
+    setTimeout(() => {
+      if (textareaRef) {
+        const newCursorPosition = textWithoutCurrentWord.length + term.hassaniyaTerm.length + 1;
+        textareaRef.setSelectionRange(newCursorPosition, newCursorPosition);
+        textareaRef.focus();
+      }
+    }, 0);
+  };
 
   if (user?.role !== "translator") {
     return (
@@ -316,8 +380,9 @@ export default function Workspace() {
               </CardHeader>
               <CardContent className="p-6">
                 <Textarea
+                  ref={(ref) => setTextareaRef(ref)}
                   value={translation}
-                  onChange={(e) => setTranslation(e.target.value)}
+                  onChange={(e) => handleTranslationChange(e.target.value)}
                   placeholder="أدخل الترجمة بلهجة الحسانية هنا..."
                   className="paragraph-textarea border-[var(--project-border)] focus:ring-2 focus:ring-[var(--project-primary)] focus:border-transparent arabic-text resize-none"
                   dir="rtl"
@@ -401,6 +466,15 @@ export default function Workspace() {
             </CardContent>
           </Card>
         </main>
+        
+        {/* Approved Terms Suggestions */}
+        <ApprovedTermsSuggestions
+          searchQuery={suggestionQuery}
+          onSelectTerm={handleSelectTerm}
+          position={suggestionPosition}
+          isVisible={showSuggestions}
+          onClose={() => setShowSuggestions(false)}
+        />
       </div>
     </div>
   );

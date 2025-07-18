@@ -6,7 +6,8 @@ import {
   insertSourceSchema, 
   insertTemplateSchema, 
   insertWorkPacketSchema,
-  insertUserSchema 
+  insertUserSchema,
+  insertApprovedTermSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -344,6 +345,46 @@ export function registerRoutes(app: Express): Server {
       }
     } catch (error) {
       res.status(500).json({ error: "Failed to export data" });
+    }
+  });
+  
+  // Approved Terms Routes
+  app.get("/api/approved-terms/search", requireAuth, async (req, res, next) => {
+    try {
+      const query = req.query.q as string;
+      const terms = await storage.searchApprovedTerms(query);
+      res.json(terms);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  app.post("/api/approved-terms/:id/increment", requireAuth, async (req, res, next) => {
+    try {
+      const id = Number(req.params.id);
+      await storage.incrementTermFrequency(id);
+      res.sendStatus(200);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  app.get("/api/approved-terms", requireAuth, requireRole(["admin"]), async (req, res, next) => {
+    try {
+      const terms = await storage.getAllApprovedTerms();
+      res.json(terms);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  app.post("/api/approved-terms", requireAuth, requireRole(["admin"]), async (req, res, next) => {
+    try {
+      const validatedData = insertApprovedTermSchema.parse(req.body);
+      const term = await storage.createApprovedTerm(validatedData);
+      res.status(201).json(term);
+    } catch (error) {
+      next(error);
     }
   });
 

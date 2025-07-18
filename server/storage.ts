@@ -5,6 +5,7 @@ import {
   workPackets, 
   workItems, 
   workItemAssignments,
+  approvedTerms,
   type User, 
   type InsertUser,
   type Source,
@@ -15,7 +16,9 @@ import {
   type InsertWorkPacket,
   type WorkItem,
   type InsertWorkItem,
-  type WorkItemAssignment
+  type WorkItemAssignment,
+  type ApprovedTerm,
+  type InsertApprovedTerm
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, sql } from "drizzle-orm";
@@ -66,6 +69,11 @@ export interface IStorage {
     fromDate?: Date;
     toDate?: Date;
   }): Promise<WorkItem[]>;
+  
+  searchApprovedTerms(query: string): Promise<ApprovedTerm[]>;
+  incrementTermFrequency(id: number): Promise<void>;
+  createApprovedTerm(term: InsertApprovedTerm): Promise<ApprovedTerm>;
+  getAllApprovedTerms(): Promise<ApprovedTerm[]>;
 
   sessionStore: session.Store;
 }
@@ -284,6 +292,44 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(workItems)
       .where(and(...conditions))
       .orderBy(desc(workItems.reviewedAt));
+  }
+  
+  async searchApprovedTerms(query: string): Promise<ApprovedTerm[]> {
+    if (!query || query.length < 2) return [];
+    
+    // Search for terms that match the query in Arabic or Hassaniya
+    const terms = await db
+      .select()
+      .from(approvedTerms)
+      .where(
+        sql`${approvedTerms.arabicTerm} ILIKE ${`%${query}%`} OR ${approvedTerms.hassaniyaTerm} ILIKE ${`%${query}%`}`
+      )
+      .orderBy(desc(approvedTerms.frequency))
+      .limit(10);
+    
+    return terms;
+  }
+  
+  async incrementTermFrequency(id: number): Promise<void> {
+    await db
+      .update(approvedTerms)
+      .set({ frequency: sql`${approvedTerms.frequency} + 1` })
+      .where(eq(approvedTerms.id, id));
+  }
+  
+  async createApprovedTerm(term: InsertApprovedTerm): Promise<ApprovedTerm> {
+    const [newTerm] = await db
+      .insert(approvedTerms)
+      .values(term)
+      .returning();
+    return newTerm;
+  }
+  
+  async getAllApprovedTerms(): Promise<ApprovedTerm[]> {
+    return await db
+      .select()
+      .from(approvedTerms)
+      .orderBy(desc(approvedTerms.frequency));
   }
 }
 

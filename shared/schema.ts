@@ -137,6 +137,17 @@ export const workItemAssignmentsRelations = relations(workItemAssignments, ({ on
   }),
 }));
 
+// Approved Terms Table for Hassaniya consistency
+export const approvedTerms = pgTable("approved_terms", {
+  id: serial("id").primaryKey(),
+  arabicTerm: text("arabic_term").notNull(),
+  hassaniyaTerm: text("hassaniya_term").notNull(),
+  context: text("context"), // Optional context for disambiguation
+  category: text("category"), // Optional category (e.g., religious, technical, etc.)
+  frequency: integer("frequency").default(0), // Usage frequency for better suggestions
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -166,6 +177,12 @@ export const insertWorkItemSchema = createInsertSchema(workItems).omit({
   reviewedAt: true,
 });
 
+export const insertApprovedTermSchema = createInsertSchema(approvedTerms).omit({
+  id: true,
+  createdAt: true,
+  frequency: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -178,3 +195,5 @@ export type InsertWorkPacket = z.infer<typeof insertWorkPacketSchema>;
 export type WorkItem = typeof workItems.$inferSelect;
 export type InsertWorkItem = z.infer<typeof insertWorkItemSchema>;
 export type WorkItemAssignment = typeof workItemAssignments.$inferSelect;
+export type ApprovedTerm = typeof approvedTerms.$inferSelect;
+export type InsertApprovedTerm = z.infer<typeof insertApprovedTermSchema>;

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Project Sanad is a professional, role-based web application designed to manage a high-throughput data creation workflow for Arabic language translation and annotation. The platform facilitates the creation of a large, high-quality dataset through a structured workflow involving multiple user roles with distinct responsibilities.
+Project Sanad is a professional, role-based web application designed to manage a high-throughput data creation workflow for Arabic language translation and annotation. The platform facilitates the creation of a large, high-quality dataset through a structured workflow involving multiple user roles with distinct responsibilities. The system now includes an advanced consistency preservation system for Hassaniya writing with auto-suggestions of approved terms.
 
 ## User Preferences
 
@@ -45,6 +45,7 @@ The system implements three distinct user roles with hierarchical permissions:
 - **Work Packets**: Grouped assignments linking sources to templates
 - **Work Items**: Individual translation tasks with status progression
 - **Work Item Assignments**: User-specific task assignments with tracking
+- **Approved Terms**: Hassaniya consistency system with auto-suggestions for approved terminology
 
 ### Status-Driven Workflow
 Work items progress through defined states:
@@ -56,9 +57,19 @@ Work items progress through defined states:
 2. **Template Creation**: Admins define instruction templates for different task types
 3. **Work Packet Generation**: Admins create work packets by combining sources and templates
 4. **Task Assignment**: Work items are automatically or manually assigned to translators
-5. **Translation Work**: Translators complete assigned tasks in the workspace
+5. **Translation Work**: Translators complete assigned tasks in the workspace with consistency suggestions
 6. **Quality Assurance**: QA leads review submitted work and approve or reject with feedback
 7. **Data Export**: Approved work items can be exported in multiple formats (JSONL, CSV)
+
+## Key Features
+
+### Hassaniya Consistency System
+- **Auto-Suggestions**: As translators type Arabic words, approved Hassaniya terms appear as suggestions
+- **Smart Detection**: System detects when translators are typing Arabic text and shows relevant approved terms
+- **Click to Insert**: Translators can click on suggestions to insert approved terms automatically
+- **Frequency Tracking**: Terms are tracked by usage frequency to show most relevant suggestions first
+- **Admin Management**: Admins can add and manage approved terms through dedicated interface
+- **Context Support**: Terms can include context and categories for disambiguation
 
 ## External Dependencies
 
