@@ -1,0 +1,157 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(222, 84%, 4.9%);
+  --muted: hsl(210, 40%, 96%);
+  --muted-foreground: hsl(215, 16%, 46.9%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(222, 84%, 4.9%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(222, 84%, 4.9%);
+  --border: hsl(214, 32%, 91.2%);
+  --input: hsl(214, 32%, 91.2%);
+  --primary: hsl(142, 76%, 58%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(210, 40%, 96%);
+  --secondary-foreground: hsl(222, 84%, 4.9%);
+  --accent: hsl(210, 40%, 96%);
+  --accent-foreground: hsl(222, 84%, 4.9%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --ring: hsl(222, 84%, 4.9%);
+  --radius: 0.5rem;
+  
+  /* Custom Project Sanad colors */
+  --project-primary: hsl(142, 76%, 58%); /* #4ADE80 */
+  --project-background: hsl(210, 17%, 98%); /* #F9FAFB */
+  --project-sidebar: hsl(0, 0%, 100%); /* #FFFFFF */
+  --project-text-primary: hsl(222, 84%, 4.9%); /* #111827 */
+  --project-text-secondary: hsl(220, 13%, 46%); /* #6B7280 */
+  --project-border: hsl(220, 13%, 91%); /* #E5E7EB */
+  --project-error: hsl(0, 84%, 60%); /* #EF4444 */
+}
+
+.dark {
+  --background: hsl(222, 84%, 4.9%);
+  --foreground: hsl(210, 40%, 98%);
+  --muted: hsl(217, 32%, 17.5%);
+  --muted-foreground: hsl(215, 20%, 65.1%);
+  --popover: hsl(222, 84%, 4.9%);
+  --popover-foreground: hsl(210, 40%, 98%);
+  --card: hsl(222, 84%, 4.9%);
+  --card-foreground: hsl(210, 40%, 98%);
+  --border: hsl(217, 32%, 17.5%);
+  --input: hsl(217, 32%, 17.5%);
+  --primary: hsl(142, 76%, 58%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(217, 32%, 17.5%);
+  --secondary-foreground: hsl(210, 40%, 98%);
+  --accent: hsl(217, 32%, 17.5%);
+  --accent-foreground: hsl(210, 40%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --ring: hsl(212, 72%, 59%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-[var(--project-background)] text-[var(--project-text-primary)] font-sans antialiased;
+    font-family: 'Cairo', 'Inter', sans-serif;
+  }
+
+  html[dir="rtl"] {
+    direction: rtl;
+  }
+
+  .arabic-text {
+    font-family: 'Cairo', sans-serif;
+    direction: rtl;
+    text-align: right;
+  }
+
+  .latin-text {
+    font-family: 'Inter', sans-serif;
+    direction: ltr;
+    text-align: left;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-[var(--project-primary)] text-white transition-colors;
+  }
+  
+  .btn-primary:hover {
+    background-color: color-mix(in srgb, var(--project-primary) 90%, black);
+  }
+
+  .btn-error {
+    @apply bg-[var(--project-error)] text-white transition-colors;
+  }
+  
+  .btn-error:hover {
+    background-color: color-mix(in srgb, var(--project-error) 90%, black);
+  }
+
+  .text-primary {
+    @apply text-[var(--project-text-primary)];
+  }
+
+  .text-secondary {
+    @apply text-[var(--project-text-secondary)];
+  }
+
+  .bg-sidebar {
+    @apply bg-[var(--project-sidebar)];
+  }
+
+  .border-project {
+    @apply border-[var(--project-border)];
+  }
+
+  .workspace-panel {
+    min-height: 500px;
+  }
+
+  .paragraph-textarea {
+    min-height: 400px;
+    resize: vertical;
+  }
+
+  /* RTL-specific styles */
+  .rtl-container {
+    direction: rtl;
+  }
+
+  .ltr-container {
+    direction: ltr;
+  }
+
+  /* Scrollbar styling for Arabic text areas */
+  .arabic-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--project-border) transparent;
+  }
+
+  .arabic-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .arabic-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .arabic-scroll::-webkit-scrollbar-thumb {
+    background-color: var(--project-border);
+    border-radius: 3px;
+  }
+}

@@ -1,0 +1,96 @@
+# Project Sanad - Data Annotation Platform
+
+## Overview
+
+Project Sanad is a professional, role-based web application designed to manage a high-throughput data creation workflow for Arabic language translation and annotation. The platform facilitates the creation of a large, high-quality dataset through a structured workflow involving multiple user roles with distinct responsibilities.
+
+## User Preferences
+
+Preferred communication style: Simple, everyday language.
+
+## System Architecture
+
+### Frontend Architecture
+- **Framework**: React with TypeScript using Vite as the build tool
+- **UI Library**: shadcn/ui components built on Radix UI primitives
+- **Styling**: Tailwind CSS with custom design system variables
+- **Routing**: Wouter for client-side routing
+- **State Management**: TanStack Query for server state management
+- **Form Handling**: React Hook Form with Zod validation
+
+### Backend Architecture
+- **Runtime**: Node.js with Express.js framework
+- **Language**: TypeScript with ES modules
+- **Database ORM**: Drizzle ORM with PostgreSQL
+- **Authentication**: Passport.js with local strategy and session-based auth
+- **Session Storage**: PostgreSQL-backed sessions using connect-pg-simple
+
+### Database Architecture
+- **Database**: PostgreSQL (configured for Neon serverless)
+- **Schema Management**: Drizzle Kit for migrations
+- **Connection**: Neon serverless with WebSocket support
+
+## Key Components
+
+### User Roles & Access Control
+The system implements three distinct user roles with hierarchical permissions:
+
+1. **Admin**: Full system access including user management, source content management, template creation, and work packet assignment
+2. **Translator**: Limited access to assigned work items and workspace functionality
+3. **QA Lead**: Access to quality assurance queue and review functionality
+
+### Data Workflow Management
+- **Sources**: Text content repository with tagging and status tracking
+- **Instruction Templates**: Configurable task definitions with custom output formats
+- **Work Packets**: Grouped assignments linking sources to templates
+- **Work Items**: Individual translation tasks with status progression
+- **Work Item Assignments**: User-specific task assignments with tracking
+
+### Status-Driven Workflow
+Work items progress through defined states:
+- Pending Assignment → In Progress → In QA → Approved/Rejected
+
+## Data Flow
+
+1. **Content Ingestion**: Admins upload source content through the Sources interface
+2. **Template Creation**: Admins define instruction templates for different task types
+3. **Work Packet Generation**: Admins create work packets by combining sources and templates
+4. **Task Assignment**: Work items are automatically or manually assigned to translators
+5. **Translation Work**: Translators complete assigned tasks in the workspace
+6. **Quality Assurance**: QA leads review submitted work and approve or reject with feedback
+7. **Data Export**: Approved work items can be exported in multiple formats (JSONL, CSV)
+
+## External Dependencies
+
+### Database
+- **Neon PostgreSQL**: Serverless PostgreSQL database with WebSocket connections
+- **Connection Pooling**: Managed through Neon's connection pooling
+
+### UI Components
+- **Radix UI**: Comprehensive set of accessible React components
+- **Lucide React**: Icon library for consistent iconography
+- **shadcn/ui**: Pre-built component library with customizable styling
+
+### Development Tools
+- **Replit Integration**: Development environment support with error overlay and cartographer
+- **Hot Module Replacement**: Vite-powered development server with HMR
+
+## Deployment Strategy
+
+### Build Process
+- **Frontend**: Vite builds the React application to `dist/public`
+- **Backend**: esbuild bundles the Express server to `dist/index.js`
+- **Database**: Drizzle migrations are applied via `db:push` command
+
+### Environment Configuration
+- **Development**: Uses tsx for TypeScript execution with hot reloading
+- **Production**: Compiled JavaScript execution with optimized builds
+- **Environment Variables**: Database URL and session secrets required for operation
+
+### File Structure
+- **Shared Schema**: Common TypeScript definitions in `/shared` directory
+- **Client Code**: React application in `/client` directory
+- **Server Code**: Express backend in `/server` directory
+- **Migrations**: Database migrations in `/migrations` directory
+
+The application follows a monorepo structure with clear separation between client, server, and shared code, enabling efficient development and deployment while maintaining type safety across the entire stack.
