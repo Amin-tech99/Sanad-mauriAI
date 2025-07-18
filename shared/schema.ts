@@ -233,6 +233,26 @@ export const insertWordAlternativeSchema = createInsertSchema(wordAlternatives).
   createdAt: true,
 });
 
+// Word suggestions table (for translator contributions)
+export const wordSuggestions = pgTable("word_suggestions", {
+  id: serial("id").primaryKey(),
+  suggestedBy: integer("suggested_by").references(() => users.id).notNull(),
+  baseWord: text("base_word").notNull(),
+  alternativeWord: text("alternative_word").notNull(),
+  styleTagId: integer("style_tag_id").references(() => styleTags.id).notNull(),
+  workItemId: integer("work_item_id").references(() => workItems.id),
+  context: text("context"),
+  status: text("status").default("pending").notNull(), // pending, approved, rejected
+  reviewedBy: integer("reviewed_by").references(() => users.id),
+  reviewNotes: text("review_notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  reviewedAt: timestamp("reviewed_at"),
+});
+
+// Insert schema for word suggestions
+export const insertWordSuggestionSchema = createInsertSchema(wordSuggestions)
+  .omit({ id: true, createdAt: true, reviewedAt: true });
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -253,3 +273,5 @@ export type ContextualLexicon = typeof contextualLexicon.$inferSelect;
 export type InsertContextualLexicon = z.infer<typeof insertContextualLexiconSchema>;
 export type WordAlternative = typeof wordAlternatives.$inferSelect;
 export type InsertWordAlternative = z.infer<typeof insertWordAlternativeSchema>;
+export type WordSuggestion = typeof wordSuggestions.$inferSelect;
+export type InsertWordSuggestion = z.infer<typeof insertWordSuggestionSchema>;

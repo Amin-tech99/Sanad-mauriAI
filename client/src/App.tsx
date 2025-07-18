@@ -16,6 +16,7 @@ import ExportPage from "@/pages/export";
 import ApprovedTerms from "@/pages/approved-terms";
 import StyleTags from "@/pages/style-tags";
 import ContextualLexicon from "@/pages/contextual-lexicon";
+import WordSuggestions from "@/pages/word-suggestions";
 import MyWork from "@/pages/my-work";
 import Workspace from "@/pages/workspace";
 import QAQueue from "@/pages/qa-queue";
@@ -33,6 +34,7 @@ function Router() {
       <ProtectedRoute path="/approved-terms" component={ApprovedTerms} />
       <ProtectedRoute path="/style-tags" component={StyleTags} />
       <ProtectedRoute path="/contextual-lexicon" component={ContextualLexicon} />
+      <ProtectedRoute path="/word-suggestions" component={WordSuggestions} />
       <ProtectedRoute path="/export" component={ExportPage} />
       <ProtectedRoute path="/my-work" component={MyWork} />
       <ProtectedRoute path="/workspace" component={() => <Workspace />} />

@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import ApprovedTermsSuggestions from "@/components/approved-terms-suggestions";
 import ContextualWordAssistant from "@/components/contextual-word-assistant";
+import WordSuggestionDialog from "@/components/word-suggestion-dialog";
 import type { WorkItem, ApprovedTerm, StyleTag } from "@shared/schema";
 
 export default function Workspace() {
@@ -29,6 +30,8 @@ export default function Workspace() {
   const [suggestionQuery, setSuggestionQuery] = useState("");
   const [suggestionPosition, setSuggestionPosition] = useState({ top: 0, left: 0 });
   const [textareaRef, setTextareaRef] = useState<HTMLTextAreaElement | null>(null);
+  const [showWordSuggestionDialog, setShowWordSuggestionDialog] = useState(false);
+  const [completedWorkItem, setCompletedWorkItem] = useState<{ sourceText: string; targetText: string; id: number } | null>(null);
 
   if (user?.role !== "translator") {
     return (
@@ -85,6 +88,17 @@ export default function Workspace() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/my-work"] });
+      
+      // Show word suggestion dialog
+      if (currentItem) {
+        setCompletedWorkItem({
+          sourceText: currentItem.sourceText,
+          targetText: translation,
+          id: currentItem.id
+        });
+        setShowWordSuggestionDialog(true);
+      }
+      
       setTranslation("");
       toast({
         title: "تم الإرسال بنجاح",
@@ -502,6 +516,17 @@ export default function Workspace() {
           onWordSelect={setTranslation}
           textareaRef={textareaRef}
         />
+        
+        {/* Word Suggestion Dialog */}
+        {completedWorkItem && (
+          <WordSuggestionDialog
+            open={showWordSuggestionDialog}
+            onClose={() => setShowWordSuggestionDialog(false)}
+            sourceText={completedWorkItem.sourceText}
+            translatedText={completedWorkItem.targetText}
+            workItemId={completedWorkItem.id}
+          />
+        )}
       </div>
     </div>
   );

@@ -28,7 +28,10 @@ import {
   type ContextualLexicon,
   type InsertContextualLexicon,
   type WordAlternative,
-  type InsertWordAlternative
+  type InsertWordAlternative,
+  wordSuggestions,
+  type WordSuggestion,
+  type InsertWordSuggestion
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, sql } from "drizzle-orm";
@@ -97,6 +100,11 @@ export interface IStorage {
   createContextualLexiconEntry(entry: InsertContextualLexicon): Promise<ContextualLexicon>;
   addWordAlternative(lexiconId: number, alternative: string, styleTagIds: number[]): Promise<WordAlternative>;
   getWordAlternativesByBaseWord(baseWord: string): Promise<any[]>;
+  
+  // Word suggestions
+  createWordSuggestion(suggestion: InsertWordSuggestion): Promise<WordSuggestion>;
+  getWordSuggestionsByStatus(status: string): Promise<WordSuggestion[]>;
+  updateWordSuggestionStatus(id: number, status: string, reviewedBy: number, reviewNotes?: string): Promise<void>;
 
   sessionStore: session.Store;
 }
@@ -506,6 +514,38 @@ export class DatabaseStorage implements IStorage {
     }, {} as any);
     
     return Object.values(grouped);
+  }
+  
+  // Word suggestions implementation
+  async createWordSuggestion(suggestion: InsertWordSuggestion): Promise<WordSuggestion> {
+    const [newSuggestion] = await db
+      .insert(wordSuggestions)
+      .values(suggestion)
+      .returning();
+    return newSuggestion;
+  }
+
+  async getWordSuggestionsByStatus(status: string): Promise<WordSuggestion[]> {
+    return await db.select()
+      .from(wordSuggestions)
+      .where(eq(wordSuggestions.status, status))
+      .orderBy(desc(wordSuggestions.createdAt));
+  }
+
+  async updateWordSuggestionStatus(
+    id: number, 
+    status: string, 
+    reviewedBy: number, 
+    reviewNotes?: string
+  ): Promise<void> {
+    await db.update(wordSuggestions)
+      .set({ 
+        status, 
+        reviewedBy, 
+        reviewNotes,
+        reviewedAt: new Date()
+      })
+      .where(eq(wordSuggestions.id, id));
   }
 }
 

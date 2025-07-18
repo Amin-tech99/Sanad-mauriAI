@@ -32,6 +32,7 @@ const roleNavigation = {
     { icon: Languages, text: "المصطلحات المعتمدة", path: "/approved-terms" },
     { icon: Tag, text: "تصنيفات الأسلوب", path: "/style-tags" },
     { icon: Library, text: "المعجم السياقي", path: "/contextual-lexicon" },
+    { icon: FileText, text: "اقتراحات الكلمات", path: "/word-suggestions" },
     { icon: Download, text: "تصدير البيانات", path: "/export" },
   ],
   translator: [

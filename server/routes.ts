@@ -493,6 +493,88 @@ export function registerRoutes(app: Express): Server {
       next(error);
     }
   });
+  
+  // Word suggestions routes
+  app.post("/api/word-suggestions", requireAuth, async (req, res, next) => {
+    try {
+      const { baseWord, alternativeWord, styleTagId, workItemId, context } = req.body;
+      
+      if (!baseWord || !alternativeWord || !styleTagId) {
+        return res.status(400).json({ 
+          error: "baseWord, alternativeWord, and styleTagId are required" 
+        });
+      }
+      
+      const suggestion = await storage.createWordSuggestion({
+        suggestedBy: req.user!.id,
+        baseWord,
+        alternativeWord,
+        styleTagId,
+        workItemId,
+        context,
+        status: "pending",
+        reviewedBy: null,
+        reviewNotes: null
+      });
+      
+      res.status(201).json(suggestion);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  app.get("/api/word-suggestions/pending", requireAuth, requireRole(["admin"]), async (req, res, next) => {
+    try {
+      const suggestions = await storage.getWordSuggestionsByStatus("pending");
+      res.json(suggestions);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  app.patch("/api/word-suggestions/:id", requireAuth, requireRole(["admin"]), async (req, res, next) => {
+    try {
+      const { status, reviewNotes } = req.body;
+      const id = parseInt(req.params.id);
+      
+      if (!["approved", "rejected"].includes(status)) {
+        return res.status(400).json({ error: "Invalid status" });
+      }
+      
+      await storage.updateWordSuggestionStatus(id, status, req.user!.id, reviewNotes);
+      
+      // If approved, add to contextual lexicon
+      if (status === "approved") {
+        const [suggestion] = await storage.getWordSuggestionsByStatus("approved");
+        if (suggestion && suggestion.id === id) {
+          // Find or create lexicon entry
+          const existingLexicon = await storage.getContextualLexicon();
+          const lexiconEntry = existingLexicon.find(l => l.baseWord === suggestion.baseWord);
+          
+          if (lexiconEntry) {
+            await storage.addWordAlternative(
+              lexiconEntry.id, 
+              suggestion.alternativeWord, 
+              [suggestion.styleTagId]
+            );
+          } else {
+            const newEntry = await storage.createContextualLexiconEntry({
+              baseWord: suggestion.baseWord
+            });
+            await storage.addWordAlternative(
+              newEntry.id, 
+              suggestion.alternativeWord, 
+              [suggestion.styleTagId]
+            );
+          }
+        }
+      }
+      
+      res.json({ message: "Word suggestion updated successfully" });
+    } catch (error) {
+      next(error);
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
