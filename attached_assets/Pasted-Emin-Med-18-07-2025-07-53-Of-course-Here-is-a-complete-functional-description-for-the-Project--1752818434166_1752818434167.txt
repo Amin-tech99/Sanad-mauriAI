@@ -1,0 +1,135 @@
+Emin Med, [18/07/2025 07:53]
+Of course. Here is a complete functional description for the "Project Sanad" web application. This document is designed to be given directly to a web developer. It details all pages, components, and functionalities without specifying the underlying technology, allowing the developer to choose the best stack for the job.
+Project Blueprint: The "Project Sanad" Data Annotation Platform
+Project Overview & Core Goal:
+"Project Sanad" is a professional, role-based web application designed to manage a high-throughput data creation workflow. Its primary goal is to facilitate the creation of a large, high-quality dataset for training AI models, specifically for translating text from Formal Arabic to the Hassaniya dialect. The platform must be efficient, scalable, and quality-focused, serving as the central "data factory" for a team of administrators, translators, and quality assurance reviewers.
+Core Concepts:
+ * Role-Based Access Control: The platform will have distinct roles (Admin, Translator, QA Lead), each with a specific interface and set of permissions.
+ * Status-Driven Workflow: Every piece of data (a "Work Item") moves through a clear lifecycle: Pending Assignment -> In Progress -> In QA -> Approved / Rejected.
+ * Flexibility through Templates: The Admin can create new "Instruction Templates" to define new tasks and data formats without needing developer intervention, ensuring the platform's long-term flexibility.
+🎨 Design System Integration
+The entire application must be built using the provided Design System. This ensures a clean, consistent, and professional user experience.
+ * Primary Accent (#4ADE80): Use for all primary action buttons (Login, Submit for QA, Approve, Save Template), active navigation links, and progress indicators.
+ * Background (#F9FAFB): The default background color for all main content areas.
+ * Sidebar (#FFFFFF with soft shadow): The main navigation sidebar should use this to create a clean separation.
+ * Text Primary (#111827): For all page titles, section headers, and important labels.
+ * Text Secondary (#6B7280): For sub-labels, instructional hints, metadata (dates, names), and placeholder text.
+ * Borders/Dividers (#E5E7EB): For table borders, separating cards, and horizontal rules.
+ * Error Red (#EF4444): For all "Reject" buttons, error messages, and validation failures.
+👤 User Roles & Permissions
+ * Admin: Full access to all pages and settings. Manages users, sources, templates, and assignments. Can perform any role.
+ * Translator: Limited access. Can only view and complete tasks assigned to them.
+ * QA Lead: Limited access. Can only view and take action on tasks submitted for Quality Assurance.
+📄 Detailed Page-by-Page Description
+Part 1: General & Shared Pages
+Page 1: Login
+ * User Role(s): All
+ * Purpose: To provide secure, role-based access to the platform.
+ * Components:
+   * Card component centered on the page.
+   * Logo: "Project Sanad" logo at the top of the card.
+   * Input Field: For "Email".
+   * Input Field: For "Password".
+   * Button (Primary Accent): "تسجيل الدخول" (Login).
+   * Link: "هل نسيت كلمة المرور؟" (Forgot Password?).
+Page 2: Main Navigation & Layout
+ * User Role(s): All (after login)
+ * Purpose: To provide consistent navigation throughout the app.
+ * Components:
+   * Sidebar (White): A vertical navigation bar on the left.
+     * The links displayed in the sidebar will change based on the user's role.
+   * Header: A top bar containing the current page title and a "Profile" dropdown on the far right.
+     * The Profile dropdown will show the user's name and email, and contain a "Logout" button.
+   * Main Content Area (Background): The rest of the screen where the page content is displayed.
+Part 2: Admin Workflow Pages
+Page 3: Dashboard
+ * User Role(s): Admin
+ * Purpose: The Admin's command center for a real-time overview of the project.
+ * Components:
+   * Header: "لوحة التحكم الرئيسية" (Main Dashboard).
+   * KPI Grid: A row of 4 Data Cards. Each card has a large number and a small label below it.
+     * Card 1: "الجمل المعتمدة" (Approved Sentences).
+
+Emin Med, [18/07/2025 07:53]
+* Card 2: "إنتاج اليوم" (Today's Production).
+     * Card 3: "مهام في قائمة المراجعة" (Items in QA Queue).
+     * Card 4: "معدل الرفض" (Rejection Rate).
+   * Charts Section: Two charts side-by-side.
+     * Line Chart: "الإنتاج اليومي (آخر 30 يومًا)" (Daily Production - Last 30 Days).
+     * Bar Chart: "أداء الفريق (هذا الأسبوع)" (Team Performance - This Week).
+Page 4: Source Library (مكتبة المصادر)
+ * User Role(s): Admin
+ * Purpose: To manage the intake of raw Formal Arabic source material.
+ * Components:
+   * Header: "مكتبة المصادر".
+   * Button (Primary Accent): "رفع مقال جديد" (Upload New Article). Clicking this opens a Modal.
+   * Modal - Upload Article:
+     * Input Field: "عنوان المقال" (Article Title).
+     * Input Field with Tags: "تصنيفات المصدر" (Source Tags - e.g., News, Formal).
+     * Text Area: A large box to paste the raw article text.
+     * Button (Primary Accent): "حفظ ومعالجة" (Save & Process).
+   * Data Table: A table listing all uploaded articles with columns for Title, Tags, Status, Date Added, and Actions.
+Page 5: Instruction Template Library (مكتبة نماذج التعليمات)
+ * User Role(s): Admin
+ * Purpose: The core flexibility feature. Allows the Admin to define any type of task without developer help.
+ * Components:
+   * Header: "مكتبة نماذج التعليمات".
+   * Button (Primary Accent): "إنشاء نموذج جديد" (Create New Template). Clicking this opens a Modal.
+   * Modal - New Template:
+     * Input Field: "اسم النموذج" (Template Name).
+     * Dropdown: "نوع المهمة" (Task Type) with options like Translation, Summarization, etc.
+     * Rich Text Editor: "تعليمات للمترجم" (Instructions for Translator).
+     * Code Editor Box: "صيغة المخرج (JSONL)" (Output Format (JSONL)) for defining the data structure.
+     * Button (Primary Accent): "حفظ النموذج" (Save Template).
+   * Data Table: Lists all saved templates with columns for Template Name, Task Type, and Actions.
+Page 6: Work Packet Creator (إنشاء حزم العمل)
+ * User Role(s): Admin
+ * Purpose: To assign work to the team using a simple, step-by-step wizard.
+ * Components:
+   * Header: "إنشاء حزمة عمل جديدة".
+   * Wizard UI:
+     * Step 1: Dropdown to select a Source Article. A second Dropdown appears to select the Data Unit (Sentences or Paragraphs).
+     * Step 2: Dropdown to select an Instruction Template. A preview of the instructions is shown.
+     * Step 3: A list of Translators with checkboxes next to their names for assignment.
+     * Button (Primary Accent): "إنشاء وتعيين الحزمة" (Create & Assign Packet).
+Page 7: Data Explorer & Exporter (مستكشف ومصدّر البيانات)
+ * User Role(s): Admin
+ * Purpose: To filter and export the final, high-quality approved data.
+ * Components:
+   * Header: "مستكشف البيانات".
+   * Filter Bar: A row of Dropdown and Date Picker controls to filter the data.
+   * Data Table: A large table showing the approved data with all relevant columns.
+   * Export Section:
+     * Button (Primary Accent): "تصدير بصيغة JSONL" (Export as JSONL).
+     * Button (Secondary): "تصدير بصيغة CSV" (Export as CSV).
+Part 3: Translator & QA Lead Workflow Pages
+Page 8: My Work Queue (قائمة مهامي)
+ * User Role(s): Translator, QA Lead
+ * Purpose: A personalized homepage showing all assigned tasks.
+ * Components:
+   * Header: "قائمة مهامي".
+   * Tabs:
+     * For Translator: [مهام جديدة] (New Tasks) and [مهام تحتاج مراجعة] (Rework Required).
+     * For QA Lead: [مهام في انتظار المراجعة] (Tasks in QA Queue).
+   * Task List: A list of Task Cards. Each card displays a snippet of the source text, the instruction tag, and a Button (Primary Accent) to begin ("ابدأ العمل" or "بدء المراجعة").
+Page 9: The Workspace (Translation & QA View)
+ * User Role(s): Translator, QA Lead
+ * Purpose: The main, focused screen for performing translation or quality review.
+ * Components:
+   * Persistent Header: Always displays the Instruction/Style Tag for the current task.
+   * Layout (for Translation):
+     * Left Panel: Shows the source Formal Arabic text (read-only).
+     * Right Panel: Text Area for the translator to type the Hassaniya translation.
+   * Layout (for QA):
+
+Emin Med, [18/07/2025 07:53]
+* Left Panel: Shows the source Formal Arabic text.
+     * Middle Panel: Shows the translator's Hassaniya submission (read-only).
+     * Right Panel: The QA action panel.
+   * Action Bar:
+     * For Translator: Button (Primary Accent): "إرسال للمراجعة" (Submit for QA).
+     * For QA Lead:
+       * Button (Primary Accent): "اعتماد" (Approve).
+       * Button (Error Red): "رفض" (Reject).
+       * Text Area: A required "سبب الرفض" (Reason for Rejection) box that appears when Reject is clicked.
+   * Navigation: "المهمة التالية" (Next Item) button to move through the work queue efficiently.
