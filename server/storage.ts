@@ -50,16 +50,19 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   getAllUsers(): Promise<User[]>;
   updateUserStatus(id: number, isActive: boolean): Promise<void>;
+  updateUser(id: number, data: Partial<InsertUser>): Promise<User>;
   
   createSource(source: InsertSource): Promise<Source>;
   getAllSources(): Promise<Source[]>;
   getSourceById(id: number): Promise<Source | undefined>;
   updateSourceStatus(id: number, status: string): Promise<void>;
+  updateSource(id: number, data: Partial<InsertSource>): Promise<Source>;
   deleteSource(id: number): Promise<void>;
   
   createTemplate(template: InsertTemplate): Promise<InstructionTemplate>;
   getAllTemplates(): Promise<InstructionTemplate[]>;
   getTemplateById(id: number): Promise<InstructionTemplate | undefined>;
+  updateTemplate(id: number, data: Partial<InsertTemplate>): Promise<InstructionTemplate>;
   deleteTemplate(id: number, cascade?: boolean): Promise<void>;
   
   createWorkPacket(packet: InsertWorkPacket): Promise<WorkPacket>;
@@ -156,6 +159,15 @@ export class DatabaseStorage implements IStorage {
     await db.update(users).set({ isActive }).where(eq(users.id, id));
   }
 
+  async updateUser(id: number, data: Partial<InsertUser>): Promise<User> {
+    const [updatedUser] = await db
+      .update(users)
+      .set(data)
+      .where(eq(users.id, id))
+      .returning();
+    return updatedUser;
+  }
+
   async createSource(source: InsertSource): Promise<Source> {
     const [newSource] = await db
       .insert(sources)
@@ -175,6 +187,15 @@ export class DatabaseStorage implements IStorage {
 
   async updateSourceStatus(id: number, status: string): Promise<void> {
     await db.update(sources).set({ status }).where(eq(sources.id, id));
+  }
+
+  async updateSource(id: number, data: Partial<InsertSource>): Promise<Source> {
+    const [updatedSource] = await db
+      .update(sources)
+      .set(data)
+      .where(eq(sources.id, id))
+      .returning();
+    return updatedSource;
   }
 
   async deleteSource(id: number, cascade: boolean = false): Promise<void> {
@@ -218,6 +239,15 @@ export class DatabaseStorage implements IStorage {
   async getTemplateById(id: number): Promise<InstructionTemplate | undefined> {
     const [template] = await db.select().from(instructionTemplates).where(eq(instructionTemplates.id, id));
     return template || undefined;
+  }
+
+  async updateTemplate(id: number, data: Partial<InsertTemplate>): Promise<InstructionTemplate> {
+    const [updatedTemplate] = await db
+      .update(instructionTemplates)
+      .set(data)
+      .where(eq(instructionTemplates.id, id))
+      .returning();
+    return updatedTemplate;
   }
 
   async deleteTemplate(id: number, cascade: boolean = false): Promise<void> {

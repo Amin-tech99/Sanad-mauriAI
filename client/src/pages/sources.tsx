@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -26,6 +27,28 @@ export default function Sources() {
 
   const { data: sources = [], isLoading } = useQuery<Source[]>({
     queryKey: ["/api/sources"],
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<Source> }) => {
+      await apiRequest("PATCH", `/api/sources/${id}`, data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم التحديث",
+        description: "تم تحديث المصدر بنجاح",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/sources"] });
+      setShowEditModal(false);
+      setSelectedSource(null);
+    },
+    onError: () => {
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء تحديث المصدر",
+        variant: "destructive",
+      });
+    },
   });
 
   const deleteMutation = useMutation({
@@ -327,6 +350,112 @@ export default function Sources() {
                     </div>
                     {getStatusBadge(selectedSource.status)}
                   </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Edit Source Modal */}
+          {selectedSource && showEditModal && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <Card className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <CardHeader>
+                  <CardTitle className="text-xl arabic-text">تعديل المصدر</CardTitle>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => {
+                      setShowEditModal(false);
+                      setSelectedSource(null);
+                    }}
+                    className="absolute top-4 left-4"
+                  >
+                    ✕
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const formData = new FormData(e.currentTarget);
+                      const tags = formData.get('tags') as string;
+                      updateMutation.mutate({
+                        id: selectedSource.id,
+                        data: {
+                          title: formData.get('title') as string,
+                          content: formData.get('content') as string,
+                          tags: tags ? tags.split(',').map(t => t.trim()) : [],
+                          status: formData.get('status') as string,
+                        },
+                      });
+                    }}
+                    className="space-y-4"
+                  >
+                    <div>
+                      <label className="block text-sm font-medium mb-2 arabic-text">العنوان</label>
+                      <Input
+                        name="title"
+                        defaultValue={selectedSource.title}
+                        required
+                        className="arabic-text"
+                        dir="rtl"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 arabic-text">المحتوى</label>
+                      <Textarea
+                        name="content"
+                        defaultValue={selectedSource.content}
+                        required
+                        rows={10}
+                        className="arabic-text"
+                        dir="rtl"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 arabic-text">التصنيفات (مفصولة بفاصلة)</label>
+                      <Input
+                        name="tags"
+                        defaultValue={selectedSource.tags?.join(', ')}
+                        placeholder="مثال: تقنية، علوم، تعليم"
+                        className="arabic-text"
+                        dir="rtl"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2 arabic-text">الحالة</label>
+                      <Select name="status" defaultValue={selectedSource.status}>
+                        <SelectTrigger className="text-right" dir="rtl">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">في الانتظار</SelectItem>
+                          <SelectItem value="processing">قيد المعالجة</SelectItem>
+                          <SelectItem value="completed">مكتمل</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex justify-end space-x-2 space-x-reverse pt-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setShowEditModal(false);
+                          setSelectedSource(null);
+                        }}
+                        className="arabic-text"
+                      >
+                        إلغاء
+                      </Button>
+                      <Button
+                        type="submit"
+                        className="btn-primary arabic-text"
+                        disabled={updateMutation.isPending}
+                      >
+                        {updateMutation.isPending ? "جاري الحفظ..." : "حفظ التغييرات"}
+                      </Button>
+                    </div>
+                  </form>
                 </CardContent>
               </Card>
             </div>

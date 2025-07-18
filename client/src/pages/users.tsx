@@ -26,6 +26,7 @@ export default function Users() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [showUserModal, setShowUserModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<Omit<User, 'password'> | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -247,7 +248,14 @@ export default function Users() {
                         </TableCell>
                         <TableCell>
                           <div className="flex space-x-2 space-x-reverse">
-                            <Button size="sm" variant="outline">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedUser(userData);
+                                setShowUserModal(true);
+                              }}
+                            >
                               <Edit className="w-4 h-4" />
                             </Button>
                             <Button 
@@ -271,7 +279,11 @@ export default function Users() {
 
           <UserModal 
             isOpen={showUserModal} 
-            onClose={() => setShowUserModal(false)} 
+            onClose={() => {
+              setShowUserModal(false);
+              setSelectedUser(null);
+            }}
+            user={selectedUser}
           />
         </main>
       </div>

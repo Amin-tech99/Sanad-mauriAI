@@ -16,6 +16,7 @@ export default function Templates() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<InstructionTemplate | null>(null);
 
   const { data: templates = [], isLoading } = useQuery<InstructionTemplate[]>({
     queryKey: ["/api/templates"],
@@ -159,6 +160,10 @@ export default function Templates() {
                       <Button 
                         size="sm" 
                         variant="outline"
+                        onClick={() => {
+                          setSelectedTemplate(template);
+                          setShowTemplateModal(true);
+                        }}
                         title="تعديل"
                       >
                         <Edit className="w-4 h-4" />
@@ -192,7 +197,11 @@ export default function Templates() {
 
           <TemplateModal 
             isOpen={showTemplateModal} 
-            onClose={() => setShowTemplateModal(false)} 
+            onClose={() => {
+              setShowTemplateModal(false);
+              setSelectedTemplate(null);
+            }}
+            template={selectedTemplate}
           />
         </main>
       </div>

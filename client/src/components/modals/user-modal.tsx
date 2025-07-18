@@ -12,14 +12,20 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertUserSchema } from "@shared/schema";
+import { insertUserSchema, type User } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
 const formSchema = insertUserSchema.extend({
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
+  confirmPassword: z.string().optional(),
+}).refine((data) => {
+  // Only validate password match for new users or when password is being changed
+  if (data.password && data.password !== '') {
+    return data.password === data.confirmPassword;
+  }
+  return true;
+}, {
   message: "كلمات المرور غير متطابقة",
   path: ["confirmPassword"],
 });
@@ -29,39 +35,51 @@ type FormData = z.infer<typeof formSchema>;
 interface UserModalProps {
   isOpen: boolean;
   onClose: () => void;
+  user?: Omit<User, 'password'> | null;
 }
 
-export default function UserModal({ isOpen, onClose }: UserModalProps) {
+export default function UserModal({ isOpen, onClose, user }: UserModalProps) {
   const { toast } = useToast();
+  const isEditMode = !!user;
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: "",
+      username: user?.username || "",
       password: "",
       confirmPassword: "",
-      role: "translator",
+      role: user?.role || "translator",
     },
   });
 
-  const createUserMutation = useMutation({
+  const saveUserMutation = useMutation({
     mutationFn: async (data: FormData) => {
       const { confirmPassword, ...userData } = data;
-      const res = await apiRequest("POST", "/api/users", userData);
-      return res.json();
+      
+      if (isEditMode && user) {
+        // For edit mode, only include password if it's being changed
+        const updateData: any = { username: userData.username, role: userData.role };
+        if (userData.password && userData.password.trim() !== '') {
+          updateData.password = userData.password;
+        }
+        await apiRequest("PATCH", `/api/users/${user.id}`, updateData);
+      } else {
+        const res = await apiRequest("POST", "/api/users", userData);
+        return res.json();
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
       toast({
-        title: "تم الإنشاء بنجاح",
-        description: "تم إنشاء المستخدم الجديد بنجاح",
+        title: isEditMode ? "تم التحديث بنجاح" : "تم الإنشاء بنجاح",
+        description: isEditMode ? "تم تحديث بيانات المستخدم بنجاح" : "تم إنشاء المستخدم الجديد بنجاح",
       });
       handleClose();
     },
     onError: (error: Error) => {
       toast({
-        title: "خطأ في الإنشاء",
-        description: error.message || "فشل في إنشاء المستخدم، يرجى المحاولة مرة أخرى",
+        title: isEditMode ? "خطأ في التحديث" : "خطأ في الإنشاء",
+        description: error.message || (isEditMode ? "فشل في تحديث المستخدم" : "فشل في إنشاء المستخدم"),
         variant: "destructive",
       });
     },
@@ -73,14 +91,14 @@ export default function UserModal({ isOpen, onClose }: UserModalProps) {
   };
 
   const onSubmit = (data: FormData) => {
-    createUserMutation.mutate(data);
+    saveUserMutation.mutate(data);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="arabic-text">إضافة مستخدم جديد</DialogTitle>
+          <DialogTitle className="arabic-text">{isEditMode ? "تعديل بيانات المستخدم" : "إضافة مستخدم جديد"}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -102,7 +120,7 @@ export default function UserModal({ isOpen, onClose }: UserModalProps) {
 
           <div>
             <Label htmlFor="role" className="arabic-text">الدور</Label>
-            <Select onValueChange={(value) => form.setValue("role", value)} defaultValue="translator">
+            <Select onValueChange={(value) => form.setValue("role", value)} defaultValue={user?.role || "translator"}>
               <SelectTrigger className="text-right" dir="rtl">
                 <SelectValue placeholder="اختر الدور" />
               </SelectTrigger>
@@ -120,14 +138,16 @@ export default function UserModal({ isOpen, onClose }: UserModalProps) {
           </div>
 
           <div>
-            <Label htmlFor="password" className="arabic-text">كلمة المرور</Label>
+            <Label htmlFor="password" className="arabic-text">
+              {isEditMode ? "كلمة المرور (اتركها فارغة إذا لم ترد تغييرها)" : "كلمة المرور"}
+            </Label>
             <Input
               id="password"
               type="password"
               {...form.register("password")}
               className="text-right"
               dir="rtl"
-              placeholder="أدخل كلمة المرور"
+              placeholder={isEditMode ? "أدخل كلمة مرور جديدة أو اتركها فارغة" : "أدخل كلمة المرور"}
             />
             {form.formState.errors.password && (
               <p className="text-[var(--project-error)] text-sm mt-1 arabic-text">
@@ -136,30 +156,32 @@ export default function UserModal({ isOpen, onClose }: UserModalProps) {
             )}
           </div>
 
-          <div>
-            <Label htmlFor="confirmPassword" className="arabic-text">تأكيد كلمة المرور</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              {...form.register("confirmPassword")}
-              className="text-right"
-              dir="rtl"
-              placeholder="أعد إدخال كلمة المرور"
-            />
-            {form.formState.errors.confirmPassword && (
-              <p className="text-[var(--project-error)] text-sm mt-1 arabic-text">
-                {form.formState.errors.confirmPassword.message}
-              </p>
-            )}
-          </div>
+          {(!isEditMode || form.watch("password")) && (
+            <div>
+              <Label htmlFor="confirmPassword" className="arabic-text">تأكيد كلمة المرور</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                {...form.register("confirmPassword")}
+                className="text-right"
+                dir="rtl"
+                placeholder="أعد إدخال كلمة المرور"
+              />
+              {form.formState.errors.confirmPassword && (
+                <p className="text-[var(--project-error)] text-sm mt-1 arabic-text">
+                  {form.formState.errors.confirmPassword.message}
+                </p>
+              )}
+            </div>
+          )}
 
           <DialogFooter className="flex justify-start space-x-4 space-x-reverse">
             <Button
               type="submit"
-              disabled={createUserMutation.isPending}
+              disabled={saveUserMutation.isPending}
               className="btn-primary arabic-text"
             >
-              {createUserMutation.isPending ? "جاري الإنشاء..." : "إنشاء المستخدم"}
+              {saveUserMutation.isPending ? (isEditMode ? "جاري التحديث..." : "جاري الإنشاء...") : (isEditMode ? "حفظ التغييرات" : "إنشاء المستخدم")}
             </Button>
             <Button
               type="button"

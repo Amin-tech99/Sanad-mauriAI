@@ -68,6 +68,20 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.patch("/api/sources/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid source ID" });
+      }
+      
+      const updatedSource = await storage.updateSource(id, req.body);
+      res.json(updatedSource);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update source" });
+    }
+  });
+
   app.delete("/api/sources/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
@@ -114,6 +128,20 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).json({ error: "Invalid template data", details: error.errors });
       }
       res.status(500).json({ error: "Failed to create template" });
+    }
+  });
+
+  app.patch("/api/templates/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid template ID" });
+      }
+      
+      const updatedTemplate = await storage.updateTemplate(id, req.body);
+      res.json(updatedTemplate);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update template" });
     }
   });
 
@@ -347,6 +375,22 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).json({ error: "Invalid user data", details: error.errors });
       }
       res.status(500).json({ error: "Failed to create user" });
+    }
+  });
+
+  app.patch("/api/users/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid user ID" });
+      }
+      
+      const updatedUser = await storage.updateUser(id, req.body);
+      // Return user without password
+      const { password, ...userWithoutPassword } = updatedUser;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update user" });
     }
   });
 

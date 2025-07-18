@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertTemplateSchema } from "@shared/schema";
+import { insertTemplateSchema, type InstructionTemplate } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
@@ -28,6 +28,7 @@ type FormData = z.infer<typeof formSchema>;
 interface TemplateModalProps {
   isOpen: boolean;
   onClose: () => void;
+  template?: InstructionTemplate | null;
 }
 
 const defaultOutputFormat = `{
@@ -37,20 +38,21 @@ const defaultOutputFormat = `{
   "quality_score": 0.95
 }`;
 
-export default function TemplateModal({ isOpen, onClose }: TemplateModalProps) {
+export default function TemplateModal({ isOpen, onClose, template }: TemplateModalProps) {
   const { toast } = useToast();
+  const isEditMode = !!template;
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      taskType: "paragraph",
-      instructions: "",
-      outputFormatString: defaultOutputFormat,
+      name: template?.name || "",
+      taskType: template?.taskType || "paragraph",
+      instructions: template?.instructions || "",
+      outputFormatString: template?.outputFormat ? JSON.stringify(template.outputFormat, null, 2) : defaultOutputFormat,
     },
   });
 
-  const createMutation = useMutation({
+  const saveMutation = useMutation({
     mutationFn: async (data: FormData) => {
       const { outputFormatString, ...templateData } = data;
       
@@ -61,24 +63,30 @@ export default function TemplateModal({ isOpen, onClose }: TemplateModalProps) {
         throw new Error("صيغة JSON غير صحيحة");
       }
 
-      const res = await apiRequest("POST", "/api/templates", {
+      const payload = {
         ...templateData,
         outputFormat,
-      });
-      return res.json();
+      };
+
+      if (isEditMode && template) {
+        await apiRequest("PATCH", `/api/templates/${template.id}`, payload);
+      } else {
+        const res = await apiRequest("POST", "/api/templates", payload);
+        return res.json();
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
       toast({
-        title: "تم الإنشاء بنجاح",
-        description: "تم إنشاء نموذج التعليمات بنجاح",
+        title: isEditMode ? "تم التحديث بنجاح" : "تم الإنشاء بنجاح",
+        description: isEditMode ? "تم تحديث نموذج التعليمات بنجاح" : "تم إنشاء نموذج التعليمات بنجاح",
       });
       handleClose();
     },
     onError: (error: Error) => {
       toast({
-        title: "خطأ في الإنشاء",
-        description: error.message || "فشل في إنشاء النموذج، يرجى المحاولة مرة أخرى",
+        title: isEditMode ? "خطأ في التحديث" : "خطأ في الإنشاء",
+        description: error.message || (isEditMode ? "فشل في تحديث النموذج" : "فشل في إنشاء النموذج"),
         variant: "destructive",
       });
     },
@@ -90,14 +98,14 @@ export default function TemplateModal({ isOpen, onClose }: TemplateModalProps) {
   };
 
   const onSubmit = (data: FormData) => {
-    createMutation.mutate(data);
+    saveMutation.mutate(data);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="arabic-text">إنشاء نموذج تعليمات جديد</DialogTitle>
+          <DialogTitle className="arabic-text">{isEditMode ? "تعديل نموذج التعليمات" : "إنشاء نموذج تعليمات جديد"}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -179,10 +187,10 @@ export default function TemplateModal({ isOpen, onClose }: TemplateModalProps) {
           <DialogFooter className="flex justify-start space-x-4 space-x-reverse">
             <Button
               type="submit"
-              disabled={createMutation.isPending}
+              disabled={saveMutation.isPending}
               className="btn-primary arabic-text"
             >
-              {createMutation.isPending ? "جاري الإنشاء..." : "حفظ النموذج"}
+              {saveMutation.isPending ? (isEditMode ? "جاري التحديث..." : "جاري الإنشاء...") : "حفظ النموذج"}
             </Button>
             <Button
               type="button"
