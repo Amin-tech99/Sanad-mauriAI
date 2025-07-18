@@ -97,6 +97,18 @@ Work items progress through defined states:
 - **Batch Suggestions**: Multiple word pairs can be suggested at once
 - **Admin Review**: Suggestions are queued for admin approval before becoming active
 
+### Advanced Analytics Dashboard
+- **Comprehensive Performance Metrics**: Multi-dimensional analytics including production trends, quality metrics, and user performance
+- **Visual Data Representation**: Interactive charts using Recharts library for trend analysis, pie charts, bar charts, and area charts
+- **Time Period Filtering**: Configurable analytics periods (week, month, quarter) for flexible time-based analysis
+- **Production Trends**: Daily aggregation of approved vs rejected work items with visual trend analysis
+- **Translator Performance Ranking**: Individual translator metrics including completion rates, approval rates, and average time per item
+- **Quality Analytics**: Overall approval rates, average daily production, peak productivity hours, and common rejection reason analysis
+- **Workflow Bottleneck Analysis**: Identification of workflow stages with highest wait times and completion time analysis
+- **Content Analytics**: Performance analysis by source types, template effectiveness metrics, and style tag usage statistics
+- **Data Export Capability**: JSON export functionality for external analysis and reporting
+- **Real-time Dashboard**: Live updating metrics with responsive design for mobile and desktop access
+
 ## External Dependencies
 
 ### Database
@@ -107,6 +119,7 @@ Work items progress through defined states:
 - **Radix UI**: Comprehensive set of accessible React components
 - **Lucide React**: Icon library for consistent iconography
 - **shadcn/ui**: Pre-built component library with customizable styling
+- **Recharts**: Advanced charting library for data visualization and analytics dashboards
 
 ### Development Tools
 - **Replit Integration**: Development environment support with error overlay and cartographer

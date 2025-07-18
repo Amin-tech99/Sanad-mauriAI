@@ -19,6 +19,7 @@ import StyleTags from "@/pages/style-tags";
 import ContextualLexicon from "@/pages/contextual-lexicon";
 import WordSuggestions from "@/pages/word-suggestions";
 import PlatformControl from "@/pages/platform-control";
+import Analytics from "@/pages/analytics";
 import MyWork from "@/pages/my-work";
 import Workspace from "@/pages/workspace";
 import QAQueue from "@/pages/qa-queue";
@@ -38,6 +39,7 @@ function Router() {
       <ProtectedRoute path="/contextual-lexicon" component={ContextualLexicon} />
       <ProtectedRoute path="/word-suggestions" component={WordSuggestions} />
       <ProtectedRoute path="/platform-control" component={PlatformControl} />
+      <ProtectedRoute path="/analytics" component={Analytics} />
       <ProtectedRoute path="/export" component={ExportPage} />
       <ProtectedRoute path="/my-work" component={MyWork} />
       <ProtectedRoute path="/workspace" component={() => <Workspace />} />

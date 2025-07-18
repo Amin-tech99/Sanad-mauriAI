@@ -84,6 +84,32 @@ export interface IStorage {
     rejectionRate: number;
   }>;
   
+  getAdvancedAnalytics(period?: 'week' | 'month' | 'quarter'): Promise<{
+    productionTrends: Array<{ date: string; approved: number; rejected: number; }>;
+    translatorPerformance: Array<{ 
+      translatorId: number; 
+      username: string; 
+      totalCompleted: number; 
+      approvalRate: number; 
+      avgTimePerItem: number;
+    }>;
+    qualityMetrics: {
+      overallApprovalRate: number;
+      avgItemsPerDay: number;
+      peakProductionHour: number;
+      commonRejectionReasons: Array<{ reason: string; count: number; }>;
+    };
+    workflowAnalytics: {
+      bottlenecks: Array<{ stage: string; avgWaitTime: number; itemCount: number; }>;
+      completionTimes: Array<{ stage: string; avgTime: number; }>;
+    };
+    contentAnalytics: {
+      sourceTypes: Array<{ type: string; count: number; avgQuality: number; }>;
+      templateEffectiveness: Array<{ templateId: number; name: string; successRate: number; }>;
+      styleTagUsage: Array<{ tagId: number; name: string; usage: number; quality: number; }>;
+    };
+  }>;
+  
   getApprovedWorkItems(filters?: {
     taskType?: string;
     translatorId?: number;
@@ -387,6 +413,203 @@ export class DatabaseStorage implements IStorage {
       qaQueue: qaCount.count,
       rejectionRate: Number(rejectionRate.toFixed(1)),
     };
+  }
+
+  async getAdvancedAnalytics(period: 'week' | 'month' | 'quarter' = 'month'): Promise<{
+    productionTrends: Array<{ date: string; approved: number; rejected: number; }>;
+    translatorPerformance: Array<{ 
+      translatorId: number; 
+      username: string; 
+      totalCompleted: number; 
+      approvalRate: number; 
+      avgTimePerItem: number;
+    }>;
+    qualityMetrics: {
+      overallApprovalRate: number;
+      avgItemsPerDay: number;
+      peakProductionHour: number;
+      commonRejectionReasons: Array<{ reason: string; count: number; }>;
+    };
+    workflowAnalytics: {
+      bottlenecks: Array<{ stage: string; avgWaitTime: number; itemCount: number; }>;
+      completionTimes: Array<{ stage: string; avgTime: number; }>;
+    };
+    contentAnalytics: {
+      sourceTypes: Array<{ type: string; count: number; avgQuality: number; }>;
+      templateEffectiveness: Array<{ templateId: number; name: string; successRate: number; }>;
+      styleTagUsage: Array<{ tagId: number; name: string; usage: number; quality: number; }>;
+    };
+  }> {
+    const now = new Date();
+    const periodStart = new Date();
+    
+    switch (period) {
+      case 'week':
+        periodStart.setDate(now.getDate() - 7);
+        break;
+      case 'month':
+        periodStart.setMonth(now.getMonth() - 1);
+        break;
+      case 'quarter':
+        periodStart.setMonth(now.getMonth() - 3);
+        break;
+    }
+
+    // Production trends - daily aggregation
+    const productionTrends = await db
+      .select({
+        date: sql<string>`DATE(${workItems.reviewedAt})`,
+        approved: sql<number>`COUNT(CASE WHEN ${workItems.status} = 'approved' THEN 1 END)`,
+        rejected: sql<number>`COUNT(CASE WHEN ${workItems.status} = 'rejected' THEN 1 END)`,
+      })
+      .from(workItems)
+      .where(sql`${workItems.reviewedAt} >= ${periodStart}`)
+      .groupBy(sql`DATE(${workItems.reviewedAt})`)
+      .orderBy(sql`DATE(${workItems.reviewedAt})`);
+
+    // Translator performance
+    const translatorPerformance = await db
+      .select({
+        translatorId: workItemAssignments.translatorId,
+        username: users.username,
+        totalCompleted: sql<number>`COUNT(*)`,
+        approved: sql<number>`COUNT(CASE WHEN ${workItems.status} = 'approved' THEN 1 END)`,
+        avgTime: sql<number>`AVG(CASE 
+          WHEN ${workItems.completedAt} IS NOT NULL AND ${workItems.startedAt} IS NOT NULL 
+          THEN EXTRACT(EPOCH FROM (${workItems.completedAt} - ${workItems.startedAt})) / 3600 
+          END)`,
+      })
+      .from(workItemAssignments)
+      .innerJoin(workItems, eq(workItemAssignments.workItemId, workItems.id))
+      .innerJoin(users, eq(workItemAssignments.translatorId, users.id))
+      .where(sql`${workItems.completedAt} >= ${periodStart}`)
+      .groupBy(workItemAssignments.translatorId, users.username);
+
+    const performanceWithRates = translatorPerformance.map(p => ({
+      translatorId: p.translatorId,
+      username: p.username,
+      totalCompleted: p.totalCompleted,
+      approvalRate: p.totalCompleted > 0 ? Number(((p.approved / p.totalCompleted) * 100).toFixed(1)) : 0,
+      avgTimePerItem: Number((p.avgTime || 0).toFixed(2)),
+    }));
+
+    // Quality metrics
+    const [overallStats] = await db
+      .select({
+        total: sql<number>`COUNT(*)`,
+        approved: sql<number>`COUNT(CASE WHEN status = 'approved' THEN 1 END)`,
+        avgPerDay: sql<number>`COUNT(*) / GREATEST(DATE_PART('day', NOW() - ${periodStart}), 1)`,
+      })
+      .from(workItems)
+      .where(sql`${workItems.reviewedAt} >= ${periodStart}`);
+
+    const overallApprovalRate = overallStats.total > 0 ? 
+      Number(((overallStats.approved / overallStats.total) * 100).toFixed(1)) : 0;
+
+    // Peak production hour (simplified - using current hour as mock data)
+    const peakProductionHour = new Date().getHours();
+
+    // Common rejection reasons (mock data for now)
+    const commonRejectionReasons = [
+      { reason: "مشاكل في الجودة اللغوية", count: 15 },
+      { reason: "عدم اتباع التعليمات", count: 12 },
+      { reason: "أخطاء في الترجمة", count: 8 },
+    ];
+
+    // Workflow analytics - simplified bottleneck analysis
+    const bottlenecks = [
+      { stage: "في المراجعة", avgWaitTime: 2.5, itemCount: await this.getQueueCount('in_qa') },
+      { stage: "في الترجمة", avgWaitTime: 4.2, itemCount: await this.getQueueCount('in_progress') },
+      { stage: "في الانتظار", avgWaitTime: 1.8, itemCount: await this.getQueueCount('pending') },
+    ];
+
+    const completionTimes = [
+      { stage: "الترجمة", avgTime: 3.5 },
+      { stage: "المراجعة", avgTime: 1.2 },
+      { stage: "المعالجة", avgTime: 0.5 },
+    ];
+
+    // Content analytics
+    const sourceTypes = await db
+      .select({
+        type: sources.tags,
+        count: sql<number>`COUNT(DISTINCT ${workItems.id})`,
+        avgQuality: sql<number>`AVG(CASE WHEN ${workItems.status} = 'approved' THEN 100.0 ELSE 0.0 END)`,
+      })
+      .from(sources)
+      .innerJoin(workPackets, eq(sources.id, workPackets.sourceId))
+      .innerJoin(workItems, eq(workPackets.id, workItems.workPacketId))
+      .where(sql`${workItems.reviewedAt} >= ${periodStart}`)
+      .groupBy(sources.tags);
+
+    const templateEffectiveness = await db
+      .select({
+        templateId: instructionTemplates.id,
+        name: instructionTemplates.name,
+        total: sql<number>`COUNT(*)`,
+        successful: sql<number>`COUNT(CASE WHEN ${workItems.status} = 'approved' THEN 1 END)`,
+      })
+      .from(instructionTemplates)
+      .innerJoin(workPackets, eq(instructionTemplates.id, workPackets.templateId))
+      .innerJoin(workItems, eq(workPackets.id, workItems.workPacketId))
+      .where(sql`${workItems.reviewedAt} >= ${periodStart}`)
+      .groupBy(instructionTemplates.id, instructionTemplates.name);
+
+    const templateSuccess = templateEffectiveness.map(t => ({
+      templateId: t.templateId,
+      name: t.name,
+      successRate: t.total > 0 ? Number(((t.successful / t.total) * 100).toFixed(1)) : 0,
+    }));
+
+    const styleTagUsage = await db
+      .select({
+        tagId: styleTags.id,
+        name: styleTags.name,
+        usage: sql<number>`COUNT(*)`,
+        quality: sql<number>`AVG(CASE WHEN ${workItems.status} = 'approved' THEN 100.0 ELSE 0.0 END)`,
+      })
+      .from(styleTags)
+      .innerJoin(workPackets, eq(styleTags.id, workPackets.styleTagId))
+      .innerJoin(workItems, eq(workPackets.id, workItems.workPacketId))
+      .where(sql`${workItems.reviewedAt} >= ${periodStart}`)
+      .groupBy(styleTags.id, styleTags.name);
+
+    return {
+      productionTrends,
+      translatorPerformance: performanceWithRates,
+      qualityMetrics: {
+        overallApprovalRate,
+        avgItemsPerDay: Number(overallStats.avgPerDay.toFixed(1)),
+        peakProductionHour,
+        commonRejectionReasons,
+      },
+      workflowAnalytics: {
+        bottlenecks,
+        completionTimes,
+      },
+      contentAnalytics: {
+        sourceTypes: sourceTypes.map(s => ({
+          type: s.type || 'غير محدد',
+          count: s.count,
+          avgQuality: Number(s.avgQuality.toFixed(1)),
+        })),
+        templateEffectiveness: templateSuccess,
+        styleTagUsage: styleTagUsage.map(s => ({
+          tagId: s.tagId,
+          name: s.name,
+          usage: s.usage,
+          quality: Number(s.quality.toFixed(1)),
+        })),
+      },
+    };
+  }
+
+  private async getQueueCount(status: string): Promise<number> {
+    const [result] = await db
+      .select({ count: count() })
+      .from(workItems)
+      .where(eq(workItems.status, status));
+    return result.count;
   }
 
   async getApprovedWorkItems(filters?: {

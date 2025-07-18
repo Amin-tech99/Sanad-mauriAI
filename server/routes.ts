@@ -416,6 +416,18 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Advanced analytics
+  app.get("/api/analytics/advanced", requireAuth, requireRole(["admin"]), async (req, res) => {
+    try {
+      const period = req.query.period as 'week' | 'month' | 'quarter' | undefined;
+      const analytics = await storage.getAdvancedAnalytics(period);
+      res.json(analytics);
+    } catch (error) {
+      console.error("Analytics error:", error);
+      res.status(500).json({ error: "Failed to fetch advanced analytics" });
+    }
+  });
+
   // Data export
   app.get("/api/export", requireAuth, requireRole(["admin"]), async (req, res) => {
     try {

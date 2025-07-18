@@ -54,6 +54,7 @@ const roleNavigation = {
     {
       section: "البيانات والتصدير",
       items: [
+        { icon: BarChart3, text: "التحليلات المتقدمة", path: "/analytics" },
         { icon: Download, text: "تصدير البيانات", path: "/export" },
       ]
     }
