@@ -11,13 +11,14 @@ import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, Circle, ArrowLeft, Package, Users, AlertTriangle } from "lucide-react";
-import type { Source, InstructionTemplate, User } from "@shared/schema";
+import type { Source, InstructionTemplate, User, StyleTag } from "@shared/schema";
 
 interface CreateWorkPacketData {
   sourceId: number;
   templateId: number;
   unitType: string;
   translatorIds: number[];
+  styleTagId?: number;
 }
 
 export default function WorkPackets() {
@@ -28,6 +29,7 @@ export default function WorkPackets() {
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
   const [unitType, setUnitType] = useState("paragraph");
   const [selectedTranslators, setSelectedTranslators] = useState<number[]>([]);
+  const [selectedStyleTag, setSelectedStyleTag] = useState<number | null>(null);
 
   const { data: sources = [] } = useQuery<Source[]>({
     queryKey: ["/api/sources"],
@@ -39,6 +41,10 @@ export default function WorkPackets() {
 
   const { data: users = [] } = useQuery<User[]>({
     queryKey: ["/api/users"],
+  });
+  
+  const { data: styleTags = [] } = useQuery<StyleTag[]>({
+    queryKey: ["/api/style-tags"],
   });
 
   const createPacketMutation = useMutation({
@@ -74,6 +80,7 @@ export default function WorkPackets() {
     setSelectedTemplate(null);
     setUnitType("paragraph");
     setSelectedTranslators([]);
+    setSelectedStyleTag(null);
   };
 
   const handleTranslatorToggle = (translatorId: number) => {
@@ -95,6 +102,7 @@ export default function WorkPackets() {
         templateId: selectedTemplate!,
         unitType,
         translatorIds: selectedTranslators,
+        styleTagId: selectedStyleTag || undefined,
       });
     }
   };
@@ -293,6 +301,32 @@ export default function WorkPackets() {
                         </p>
                       </div>
                     )}
+                    
+                    {/* Style Tag Selection */}
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-[var(--project-text-primary)] mb-2 arabic-text">
+                        اختر أسلوب الترجمة (اختياري)
+                      </label>
+                      <Select value={selectedStyleTag?.toString()} onValueChange={(value) => setSelectedStyleTag(parseInt(value))}>
+                        <SelectTrigger className="text-right" dir="rtl">
+                          <SelectValue placeholder="اختر أسلوب الترجمة" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {styleTags.map((tag) => (
+                            <SelectItem key={tag.id} value={tag.id.toString()}>
+                              {tag.name} - {tag.description}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedStyleTag && (
+                        <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                          <p className="text-sm text-[var(--project-text-secondary)] arabic-text">
+                            <strong>الإرشادات:</strong> {styleTags.find(t => t.id === selectedStyleTag)?.guidelines}
+                          </p>
+                        </div>
+                      )}
+                    </div>
 
                     <div className="flex justify-start space-x-4 space-x-reverse">
                       <Button

@@ -14,7 +14,8 @@ import { Save, Send, ArrowRight, ArrowLeft, AlertTriangle, CheckCircle } from "l
 import { useToast } from "@/hooks/use-toast";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import ApprovedTermsSuggestions from "@/components/approved-terms-suggestions";
-import type { WorkItem, ApprovedTerm } from "@shared/schema";
+import ContextualWordAssistant from "@/components/contextual-word-assistant";
+import type { WorkItem, ApprovedTerm, StyleTag } from "@shared/schema";
 
 export default function Workspace() {
   const { user } = useAuth();
@@ -41,7 +42,7 @@ export default function Workspace() {
     );
   }
 
-  const { data: workItems = [], isLoading } = useQuery<WorkItem[]>({
+  const { data: workItems = [], isLoading } = useQuery<Array<WorkItem & { styleTag?: StyleTag }>>({
     queryKey: ["/api/my-work"],
     enabled: user?.role === "translator",
     refetchInterval: 30000, // Refresh every 30 seconds
@@ -345,10 +346,28 @@ export default function Workspace() {
                 <h4 className="font-medium text-[var(--project-text-primary)] mb-2 arabic-text">
                   تعليمات الترجمة:
                 </h4>
-                <p className="text-sm text-[var(--project-text-secondary)] arabic-text">
+                <p className="text-sm text-[var(--project-text-secondary)] arabic-text mb-3">
                   يرجى ترجمة النص التالي من العربية الفصحى إلى لهجة الحسانية مع الحفاظ على المعنى الأصلي والسياق الثقافي. 
                   استخدم التعابير المحلية المناسبة وتأكد من سلاسة النص المترجم.
                 </p>
+                
+                {currentItem?.styleTag && (
+                  <div className="mt-3 pt-3 border-t border-[var(--project-primary)]/20">
+                    <div className="flex items-start gap-2">
+                      <Badge className="bg-[var(--project-primary)]/20 text-[var(--project-primary)]">
+                        أسلوب: {currentItem.styleTag.name}
+                      </Badge>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-[var(--project-text-primary)] arabic-text mb-1">
+                          {currentItem.styleTag.description}
+                        </p>
+                        <p className="text-xs text-[var(--project-text-secondary)] arabic-text">
+                          {currentItem.styleTag.guidelines}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -474,6 +493,14 @@ export default function Workspace() {
           position={suggestionPosition}
           isVisible={showSuggestions}
           onClose={() => setShowSuggestions(false)}
+        />
+        
+        {/* Contextual Word Assistant */}
+        <ContextualWordAssistant
+          styleTag={currentItem?.styleTag}
+          currentText={translation}
+          onWordSelect={setTranslation}
+          textareaRef={textareaRef}
         />
       </div>
     </div>

@@ -7,7 +7,9 @@ import {
   insertTemplateSchema, 
   insertWorkPacketSchema,
   insertUserSchema,
-  insertApprovedTermSchema
+  insertApprovedTermSchema,
+  insertStyleTagSchema,
+  insertContextualLexiconSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -101,7 +103,7 @@ export function registerRoutes(app: Express): Server {
 
   app.post("/api/work-packets", requireAuth, requireRole(["admin"]), async (req, res) => {
     try {
-      const { sourceId, templateId, unitType, translatorIds } = req.body;
+      const { sourceId, templateId, unitType, translatorIds, styleTagId } = req.body;
       
       // Create work packet
       const packetData = insertWorkPacketSchema.parse({
@@ -109,6 +111,7 @@ export function registerRoutes(app: Express): Server {
         templateId,
         unitType,
         createdBy: req.user!.id,
+        styleTagId: styleTagId || null,
       });
       
       const packet = await storage.createWorkPacket(packetData);
@@ -175,7 +178,22 @@ export function registerRoutes(app: Express): Server {
       }
       
       const workItems = await storage.getWorkItemsByAssignee(req.user!.id);
-      res.json(workItems);
+      
+      // Enhance work items with packet details including style tag
+      const enhancedItems = await Promise.all(workItems.map(async (item) => {
+        const packet = await storage.getWorkPacketById(item.packetId);
+        let styleTag = null;
+        if (packet?.styleTagId) {
+          styleTag = await storage.getStyleTag(packet.styleTagId);
+        }
+        return {
+          ...item,
+          packet: packet,
+          styleTag: styleTag
+        };
+      }));
+      
+      res.json(enhancedItems);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch work items" });
     }
@@ -383,6 +401,94 @@ export function registerRoutes(app: Express): Server {
       const validatedData = insertApprovedTermSchema.parse(req.body);
       const term = await storage.createApprovedTerm(validatedData);
       res.status(201).json(term);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Style Tags routes
+  app.get("/api/style-tags", requireAuth, async (req, res, next) => {
+    try {
+      const tags = await storage.getStyleTags();
+      res.json(tags);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  app.get("/api/style-tags/:id", requireAuth, async (req, res, next) => {
+    try {
+      const tag = await storage.getStyleTag(parseInt(req.params.id));
+      if (!tag) {
+        return res.status(404).json({ error: "Style tag not found" });
+      }
+      res.json(tag);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  app.post("/api/style-tags", requireAuth, requireRole(["admin"]), async (req, res, next) => {
+    try {
+      const validatedData = insertStyleTagSchema.parse(req.body);
+      const tag = await storage.createStyleTag(validatedData);
+      res.status(201).json(tag);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  app.patch("/api/style-tags/:id", requireAuth, requireRole(["admin"]), async (req, res, next) => {
+    try {
+      const tag = await storage.updateStyleTag(parseInt(req.params.id), req.body);
+      res.json(tag);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Contextual Lexicon routes
+  app.get("/api/contextual-lexicon", requireAuth, requireRole(["admin"]), async (req, res, next) => {
+    try {
+      const lexicon = await storage.getContextualLexiconWithAlternatives();
+      res.json(lexicon);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  app.post("/api/contextual-lexicon", requireAuth, requireRole(["admin"]), async (req, res, next) => {
+    try {
+      const validatedData = insertContextualLexiconSchema.parse(req.body);
+      const entry = await storage.createContextualLexiconEntry(validatedData);
+      res.status(201).json(entry);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  app.post("/api/contextual-lexicon/:id/alternatives", requireAuth, requireRole(["admin"]), async (req, res, next) => {
+    try {
+      const { alternativeWord, styleTagIds } = req.body;
+      const alternative = await storage.addWordAlternative(
+        parseInt(req.params.id),
+        alternativeWord,
+        styleTagIds || []
+      );
+      res.status(201).json(alternative);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  app.get("/api/contextual-lexicon/check", requireAuth, async (req, res, next) => {
+    try {
+      const { word } = req.query;
+      if (!word) {
+        return res.json([]);
+      }
+      const alternatives = await storage.getWordAlternativesByBaseWord(word as string);
+      res.json(alternatives);
     } catch (error) {
       next(error);
     }

@@ -1,0 +1,97 @@
+Of course. This is a brilliant and highly sophisticated set of ideas. You are moving beyond simple data collection and brainstorming a true "intelligent annotation platform." These features will dramatically increase the quality and consistency of your data, especially for the nuanced tasks of formal/informal style and paragraph cohesion.
+
+Here is a detailed brainstorming and breakdown of these new features, designed to be given directly to a developer or UI designer.
+
+---
+
+### **Project Sanad: Feature Upgrade Blueprint**
+
+**Core Goal of this Upgrade:** To evolve "Project Sanad" from a simple translation management tool into an intelligent platform that actively guides translators toward creating high-quality, context-aware, and stylistically consistent data.
+
+---
+
+### **Feature 1: The Dynamic Style & Category System**
+
+This feature gives the Admin full control over the "style goals" for any translation task, making the platform flexible and future-proof.
+
+#### **A. For the Admin: The "Style Tag Manager" Page**
+
+This is a new settings page accessible only to the Admin.
+
+*   **Purpose:** To create, define, and manage all the stylistic categories that can be assigned to a task. This ensures that terms like "formal" have a consistent, documented meaning across the entire team.
+*   **Page Components:**
+    *   **Header:** "إدارة تصنيفات الأسلوب" (Style Tag Management).
+    *   **"Create New Style Tag" Button:** Opens a modal pop-up with the following fields:
+        1.  **Tag Name (اسم التصنيف):** A short, unique name (e.g., `formal`, `informal_friendly`, `humorous`, `technical`). This name will appear in dropdowns.
+        2.  **Tag Description & Guidelines (الوصف والإرشادات):** A rich text box where the Admin must provide a clear, detailed definition of the style, including examples. This is the "source of truth" for the translator.
+            *   **Example for `formal`:** "Use formal vocabulary. Avoid common slang. Sentence structure should be complete and grammatically precise. This style is for official documents and news reports."
+    *   **Data Table:** A list of all created style tags.
+        *   **Columns:** `Tag Name`, `Description Snippet`, `Date Created`, `Actions (Edit, Deactivate)`.
+
+#### **B. Integration into the Admin's Workflow**
+
+*   In the **"Work Packet Creator"** page, the "Assign Style Tags" dropdown will now be dynamically populated from the "Style Tag Manager." This allows the Admin to immediately use any new category they create.
+*   The detailed instructions for the packet will automatically include the full description and guidelines for the selected style tag.
+
+#### **C. For the Translator: The "Style-Aware Workspace"**
+
+*   **Purpose:** To constantly remind the translator of their stylistic goal.
+*   **UI Changes in the "Translation Workspace":**
+    *   A **persistent, highly visible "Style Badge"** will be displayed at the top of the screen (e.g., a green badge that says "الأسلوب المطلوب: رسمي" - Required Style: Formal).
+    *   This badge will have a small `(?)` icon next to it. Clicking it will open a pop-up showing the full description and guidelines for that style, as defined by the Admin.
+
+---
+
+### **Feature 2: The "Contextual Word Assistant" for Paragraphs**
+
+This is the most powerful new feature. It is an interactive system that helps translators make better word choices within a paragraph based on the assigned style and context.
+
+#### **A. For the Admin: The "Contextual Lexicon" Page**
+
+This is a new settings page for the Admin to build the "brain" of the assistant.
+
+*   **Purpose:** To create a database of words and their context-dependent alternatives.
+*   **Page Components:**
+    *   **Header:** "المعجم السياقي" (Contextual Lexicon).
+    *   **"Add New Entry" Button:** Opens a form to add a new word and its variations.
+        *   **Field 1: Base Word (الكلمة الأساسية):** The Formal Arabic word (e.g., `قال`).
+        *   **Field 2: Hassaniya Alternatives (البدائل الحسانية):** A dynamic list where the Admin can add multiple Hassaniya translations. For each alternative, they must provide:
+            1.  **The Word:** (e.g., `گال`).
+            2.  **Associated Style Tag(s):** A multi-select dropdown pulling from the "Style Tag Manager" (e.g., `informal_friendly`, `informal_common`).
+            3.  **The Word:** (e.g., `تكلم`).
+            4.  **Associated Style Tag(s):** (e.g., `formal`).
+
+#### **B. For the Translator: The Interactive Paragraph Workspace**
+
+This feature activates when the assigned task is a **"Paragraph Translation."**
+
+*   **Purpose:** To provide real-time, intelligent feedback on word choices to improve stylistic consistency and overall quality.
+*   **Workflow in Action:**
+    1.  The translator is in the "Paragraph-as-a-Unit" workspace, with the full source paragraph on the left and a large text area on the right. The **"Style Badge"** at the top shows the goal is `[formal]`.
+    2.  The translator types their Hassaniya paragraph. As they type, the system's "Contextual Word Assistant" works in the background.
+    3.  Let's say the translator types the word `گال`. The system checks the Lexicon and sees that `گال` is tagged as `informal`. Since the task goal is `formal`, it flags this as a potential mismatch.
+    4.  **The UI Interaction:** The word `گال` is subtly underlined with a wavy line (similar to a spell checker).
+    5.  When the translator hovers over the underlined word, a small tooltip appears:
+        > **"Style Suggestion:** 'گال' is typically informal. For a `[formal]` style, consider: **'تكلم'** or **'صرح'**."
+    6.  The translator can click on a suggestion to automatically replace the word, or simply ignore it.
+
+#### **C. The Final Submission "Style Check"**
+
+This is the final quality gate you requested, ensuring the translator consciously confirms their choices.
+
+*   **Purpose:** To catch any remaining stylistic inconsistencies before the paragraph is submitted for QA.
+*   **Workflow in Action:**
+    1.  The translator finishes the paragraph and clicks the **"Submit for QA"** button.
+    2.  The system performs a final scan of the text against the Lexicon and the assigned style goal.
+    3.  If it finds potential mismatches (e.g., 3 informal words were used in a formal task), it does **not** submit immediately. Instead, it opens a confirmation `Modal`.
+    4.  **The Confirmation Modal:**
+        *   **Title:** "مراجعة أخيرة للأسلوب" (Final Style Review).
+        *   **Message:** "We noticed a few words that might not match the required `[formal]` style. Please review them before submitting."
+        *   **A list of the flagged words:**
+            *   "الكلمة: **'گال'** (غير رسمي). البديل المقترح: **'تكلم'**."
+            *   Action buttons next to each item: `` and `[Keep Original]`.
+        *   **Final Buttons at the bottom:**
+            *   `Button (Primary Accent)`: "تأكيد وإرسال للمراجعة" (Confirm & Submit for QA).
+            *   `Button (Secondary)`: "العودة للتعديل" (Return to Editing).
+
+This system is powerful because it doesn't force the translator's hand—it respects their expertise. But it makes them aware of potential issues and requires them to actively confirm their choices, leading to a much cleaner and more consistent dataset.

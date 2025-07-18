@@ -38,6 +38,7 @@ export const workPackets = pgTable("work_packets", {
   sourceId: integer("source_id").references(() => sources.id),
   templateId: integer("template_id").references(() => instructionTemplates.id),
   unitType: text("unit_type").notNull(), // sentence, paragraph
+  styleTagId: integer("style_tag_id").references(() => styleTags.id), // Style tag for the work packet
   status: text("status").notNull().default("active"), // active, completed, archived
   createdAt: timestamp("created_at").defaultNow(),
   createdBy: integer("created_by").references(() => users.id),
@@ -148,6 +149,39 @@ export const approvedTerms = pgTable("approved_terms", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Style Tags table for dynamic style management
+export const styleTags = pgTable("style_tags", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  description: text("description").notNull(),
+  guidelines: text("guidelines").notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Contextual Lexicon table for word alternatives
+export const contextualLexicon = pgTable("contextual_lexicon", {
+  id: serial("id").primaryKey(),
+  baseWord: text("base_word").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Word Alternatives table (many-to-one with contextualLexicon)
+export const wordAlternatives = pgTable("word_alternatives", {
+  id: serial("id").primaryKey(),
+  lexiconId: integer("lexicon_id").notNull().references(() => contextualLexicon.id),
+  alternativeWord: text("alternative_word").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Many-to-many relationship between word alternatives and style tags
+export const wordAlternativeStyleTags = pgTable("word_alternative_style_tags", {
+  id: serial("id").primaryKey(),
+  alternativeId: integer("alternative_id").notNull().references(() => wordAlternatives.id),
+  styleTagId: integer("style_tag_id").notNull().references(() => styleTags.id),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -183,6 +217,22 @@ export const insertApprovedTermSchema = createInsertSchema(approvedTerms).omit({
   frequency: true,
 });
 
+export const insertStyleTagSchema = createInsertSchema(styleTags).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertContextualLexiconSchema = createInsertSchema(contextualLexicon).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertWordAlternativeSchema = createInsertSchema(wordAlternatives).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -197,3 +247,9 @@ export type InsertWorkItem = z.infer<typeof insertWorkItemSchema>;
 export type WorkItemAssignment = typeof workItemAssignments.$inferSelect;
 export type ApprovedTerm = typeof approvedTerms.$inferSelect;
 export type InsertApprovedTerm = z.infer<typeof insertApprovedTermSchema>;
+export type StyleTag = typeof styleTags.$inferSelect;
+export type InsertStyleTag = z.infer<typeof insertStyleTagSchema>;
+export type ContextualLexicon = typeof contextualLexicon.$inferSelect;
+export type InsertContextualLexicon = z.infer<typeof insertContextualLexiconSchema>;
+export type WordAlternative = typeof wordAlternatives.$inferSelect;
+export type InsertWordAlternative = z.infer<typeof insertWordAlternativeSchema>;
