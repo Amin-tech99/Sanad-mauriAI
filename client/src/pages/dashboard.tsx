@@ -42,9 +42,9 @@ export default function Dashboard() {
         <main className="p-4 lg:p-6 overflow-y-auto">
           {/* Welcome Section */}
           <div className="mb-8">
-            <div className="bg-gradient-to-r from-[var(--project-primary)] to-[var(--project-primary)]/80 text-white p-6 rounded-lg mb-6">
-              <h2 className="text-2xl font-bold mb-2 arabic-text">مرحباً بك في مشروع سند</h2>
-              <p className="text-white/90 arabic-text">منصة شاملة لإدارة البيانات اللغوية وترجمة النصوص من العربية الفصحى إلى الحسانية</p>
+            <div className="bg-gradient-to-r from-green-600 to-green-500 text-white p-6 rounded-lg mb-6 shadow-lg">
+              <h2 className="text-2xl font-bold mb-2 arabic-text text-white">مرحباً بك في مشروع سند</h2>
+              <p className="text-white arabic-text opacity-95">منصة شاملة لإدارة البيانات اللغوية وترجمة النصوص من العربية الفصحى إلى الحسانية</p>
             </div>
           </div>
           

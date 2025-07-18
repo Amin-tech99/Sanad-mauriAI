@@ -89,10 +89,7 @@ export default function Sidebar() {
   // Get navigation for user role (temporarily show all items)
   const navigation = roleNavigation[user.role as keyof typeof roleNavigation] || [];
   
-  // Debug log to check navigation items
-  console.log('User role:', user.role);
-  console.log('Navigation sections:', navigation.length);
-  console.log('Total items:', navigation.reduce((acc, section) => acc + section.items.length, 0));
+
   
   // Feature filtering temporarily disabled to show all navigation options
   // const filteredNavigation = baseNavigation.map((section) => ({
@@ -180,11 +177,11 @@ export default function Sidebar() {
         </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto p-4">
+      <nav className="flex-1 overflow-y-auto p-4" style={{ maxHeight: 'calc(100vh - 200px)' }}>
         <div className="space-y-1 pb-4">
           {navigation.map((section, sectionIndex) => (
-            <div key={sectionIndex} className="mb-4">
-              <div className="px-3 py-2 mb-2">
+            <div key={sectionIndex} className="mb-3">
+              <div className="px-3 py-1 mb-1">
                 <h3 className="text-xs font-bold text-[var(--project-text-secondary)] uppercase arabic-text tracking-wider">
                   {section.section}
                 </h3>
