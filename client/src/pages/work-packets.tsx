@@ -64,7 +64,7 @@ export default function WorkPackets() {
   });
 
   const translators = users.filter(u => u.role === "translator" && u.isActive);
-  const completedSources = sources.filter(s => s.status === "completed");
+  const availableSources = sources.filter(s => s.status === "processing" || s.status === "completed");
   const selectedSourceData = sources.find(s => s.id === selectedSource);
   const selectedTemplateData = templates.find(t => t.id === selectedTemplate);
 
@@ -193,11 +193,17 @@ export default function WorkPackets() {
                             <SelectValue placeholder="اختر مقال مصدر" />
                           </SelectTrigger>
                           <SelectContent>
-                            {completedSources.map((source) => (
-                              <SelectItem key={source.id} value={source.id.toString()}>
-                                {source.title}
+                            {availableSources.length === 0 ? (
+                              <SelectItem value="no-sources" disabled>
+                                لا توجد مقالات متاحة
                               </SelectItem>
-                            ))}
+                            ) : (
+                              availableSources.map((source) => (
+                                <SelectItem key={source.id} value={source.id.toString()}>
+                                  {source.title}
+                                </SelectItem>
+                              ))
+                            )}
                           </SelectContent>
                         </Select>
                       </div>

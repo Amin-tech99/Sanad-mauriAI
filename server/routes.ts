@@ -157,7 +157,11 @@ export function registerRoutes(app: Express): Server {
   // Work items routes
   app.get("/api/my-work", requireAuth, async (req, res) => {
     try {
-      const workItems = await storage.getWorkItemsByAssignee(req.user.id);
+      if (!req.user || req.user.role !== "translator") {
+        return res.status(403).json({ error: "Only translators can access their work items" });
+      }
+      
+      const workItems = await storage.getWorkItemsByAssignee(req.user!.id);
       res.json(workItems);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch work items" });
@@ -183,7 +187,7 @@ export function registerRoutes(app: Express): Server {
       }
       
       // Check permissions
-      if (req.user.role === "translator" && workItem.assignedTo !== req.user.id) {
+      if (req.user!.role === "translator" && workItem.assignedTo !== req.user!.id) {
         return res.status(403).json({ error: "Not authorized to view this work item" });
       }
       
@@ -206,12 +210,12 @@ export function registerRoutes(app: Express): Server {
       // Check permissions based on action
       if (status === "in_qa") {
         // Translator submitting for QA
-        if (req.user.role !== "translator" || workItem.assignedTo !== req.user.id) {
+        if (req.user!.role !== "translator" || workItem.assignedTo !== req.user!.id) {
           return res.status(403).json({ error: "Not authorized" });
         }
       } else if (status === "approved" || status === "rejected") {
         // QA reviewing
-        if (!["qa", "admin"].includes(req.user.role)) {
+        if (!["qa", "admin"].includes(req.user!.role)) {
           return res.status(403).json({ error: "Not authorized" });
         }
       }
@@ -220,7 +224,7 @@ export function registerRoutes(app: Express): Server {
       if (targetText !== undefined) updates.targetText = targetText;
       if (rejectionReason !== undefined) updates.rejectionReason = rejectionReason;
       if (qualityScore !== undefined) updates.qualityScore = qualityScore;
-      if (status === "approved" || status === "rejected") updates.reviewedBy = req.user.id;
+      if (status === "approved" || status === "rejected") updates.reviewedBy = req.user!.id;
       
       await storage.updateWorkItemStatus(id, status, updates);
       
