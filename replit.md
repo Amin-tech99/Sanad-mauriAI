@@ -2,7 +2,7 @@
 
 ## Overview
 
-Project Sanad is a professional, role-based web application designed to manage a high-throughput data creation workflow for Arabic language translation and annotation. The platform facilitates the creation of a large, high-quality dataset through a structured workflow involving multiple user roles with distinct responsibilities. The system now includes an advanced consistency preservation system for Hassaniya writing with auto-suggestions of approved terms.
+Project Sanad is a professional, role-based web application designed to manage a high-throughput data creation workflow for Arabic language translation and annotation. The platform facilitates the creation of a large, high-quality dataset through a structured workflow involving multiple user roles with distinct responsibilities. The system includes advanced smart features: consistency preservation system for Hassaniya writing with auto-suggestions of approved terms, contextual word alternatives based on translation styles, collaborative word suggestion system, and AI-optimized export capabilities.
 
 ## User Preferences
 
@@ -71,6 +71,7 @@ Work items progress through defined states:
 - **Real-time Updates**: Changes take effect immediately across the platform
 - **Feature Statistics**: Dashboard showing enabled/disabled features and dependencies
 - **Safe Guards**: Critical features protected from accidental disabling
+- **Smart Features Enabled**: All translator assistance features are now active
 
 ### Hassaniya Consistency System
 - **Auto-Suggestions**: As translators type Arabic words, approved Hassaniya terms appear as suggestions
@@ -80,6 +81,21 @@ Work items progress through defined states:
 - **Admin Management**: Admins can add and manage approved terms through dedicated interface
 - **Context Support**: Terms can include context and categories for disambiguation
 - **Feature Gating**: All assistance features can be controlled through platform settings
+- **Test Data**: 9 approved terms loaded (السلام عليكم، مرحبا، شكراً، كيف حالك، ما اسمك، نظام، ترجمة، كلمات، استخدام)
+
+### Contextual Word Alternatives System
+- **Style-Based Suggestions**: Different word alternatives based on translation style (formal/informal/technical)
+- **Real-time Detection**: Automatically detects Arabic words at cursor position
+- **Style-Aware**: Shows only alternatives relevant to the current work item's style
+- **Visual Indicators**: Clear UI showing alternative words with style tags
+- **Test Data**: Word alternatives configured for قال، مرحبا، شكرا with formal/informal variants
+
+### Collaborative Word Suggestion System
+- **Post-Submission Dialog**: After completing a translation, translators can suggest new word alternatives
+- **Style Association**: Each suggestion can be linked to specific translation styles
+- **Context Support**: Translators can provide context for their suggestions
+- **Batch Suggestions**: Multiple word pairs can be suggested at once
+- **Admin Review**: Suggestions are queued for admin approval before becoming active
 
 ## External Dependencies
 
