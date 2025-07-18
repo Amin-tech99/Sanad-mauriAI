@@ -86,33 +86,35 @@ export default function Sidebar() {
 
   if (!user) return null;
 
-  // Filter navigation based on enabled features
-  const baseNavigation = roleNavigation[user.role as keyof typeof roleNavigation] || [];
-  const navigation = baseNavigation.map((section) => ({
-    ...section,
-    items: section.items.filter((item) => {
-      // Map navigation items to feature keys
-      const featureMap: Record<string, string> = {
-        "/users": "user_management",
-        "/sources": "source_management",
-        "/templates": "template_management",
-        "/work-packets": "work_packet_creation",
-        "/approved-terms": "approved_terms",
-        "/style-tags": "style_tags",
-        "/contextual-lexicon": "contextual_lexicon",
-        "/word-suggestions": "word_suggestions",
-        "/export": "data_export",
-        "/my-work": "translator_workspace",
-        "/workspace": "translator_workspace",
-        "/qa-queue": "qa_review",
-        "/qa-review": "qa_review",
-        "/": "dashboard_analytics",
-      };
-      
-      const featureKey = featureMap[item.path];
-      return !featureKey || isFeatureEnabled(featureKey);
-    })
-  })).filter(section => section.items.length > 0);
+  // Get navigation for user role (temporarily show all items)
+  const navigation = roleNavigation[user.role as keyof typeof roleNavigation] || [];
+  
+  // Feature filtering temporarily disabled to show all navigation options
+  // const filteredNavigation = baseNavigation.map((section) => ({
+  //   ...section,
+  //   items: section.items.filter((item) => {
+  //     const featureMap: Record<string, string> = {
+  //       "/users": "user_management",
+  //       "/sources": "source_management",
+  //       "/templates": "template_management",
+  //       "/work-packets": "work_packet_creation",
+  //       "/approved-terms": "approved_terms",
+  //       "/style-tags": "style_tags",
+  //       "/contextual-lexicon": "contextual_lexicon",
+  //       "/word-suggestions": "word_suggestions",
+  //       "/export": "data_export",
+  //       "/my-work": "translator_workspace",
+  //       "/workspace": "translator_workspace",
+  //       "/qa-queue": "qa_review",
+  //       "/qa-review": "qa_review",
+  //       "/platform-control": "platform_control",
+  //       "/": "dashboard_analytics",
+  //     };
+  //     
+  //     const featureKey = featureMap[item.path];
+  //     return !featureKey || isFeatureEnabled(featureKey);
+  //   })
+  // })).filter(section => section.items.length > 0);
 
   const getRoleName = (role: string) => {
     const roleNames = {
