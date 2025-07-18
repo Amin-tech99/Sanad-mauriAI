@@ -328,7 +328,7 @@ export class DatabaseStorage implements IStorage {
     translatorId?: number;
     fromDate?: Date;
     toDate?: Date;
-  }): Promise<WorkItem[]> {
+  }): Promise<any[]> {
     let conditions = [eq(workItems.status, 'approved')];
     
     if (filters?.translatorId) {
@@ -342,10 +342,33 @@ export class DatabaseStorage implements IStorage {
     if (filters?.toDate) {
       conditions.push(sql`${workItems.reviewedAt} <= ${filters.toDate}`);
     }
-    
-    return await db.select().from(workItems)
+
+    // Join with work packets to get style tag information
+    const itemsWithStyle = await db
+      .select({
+        id: workItems.id,
+        sourceText: workItems.sourceText,
+        targetText: workItems.targetText,
+        qualityScore: workItems.qualityScore,
+        reviewedAt: workItems.reviewedAt,
+        packetId: workItems.packetId,
+        styleTagId: workPackets.styleTagId,
+        styleName: styleTags.name,
+        styleDescription: styleTags.description,
+        taskType: instructionTemplates.taskType,
+        templateName: instructionTemplates.name,
+        assignedToId: workItems.assignedTo,
+        translatorUsername: users.username,
+      })
+      .from(workItems)
+      .innerJoin(workPackets, eq(workItems.packetId, workPackets.id))
+      .leftJoin(styleTags, eq(workPackets.styleTagId, styleTags.id))
+      .leftJoin(instructionTemplates, eq(workPackets.templateId, instructionTemplates.id))
+      .leftJoin(users, eq(workItems.assignedTo, users.id))
       .where(and(...conditions))
       .orderBy(desc(workItems.reviewedAt));
+
+    return itemsWithStyle;
   }
   
   async searchApprovedTerms(query: string): Promise<ApprovedTerm[]> {

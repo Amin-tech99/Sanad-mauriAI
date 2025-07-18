@@ -364,6 +364,11 @@ export function registerRoutes(app: Express): Server {
         const jsonlData = workItems.map(item => ({
           source_text: item.sourceText,
           target_text: item.targetText,
+          style: item.styleName || "unknown",
+          style_description: item.styleDescription || "",
+          task_type: item.taskType || "unknown",
+          template_name: item.templateName || "",
+          translator: item.translatorUsername || "",
           quality_score: item.qualityScore,
           reviewed_at: item.reviewedAt,
         })).map(item => JSON.stringify(item)).join('\n');
@@ -374,9 +379,9 @@ export function registerRoutes(app: Express): Server {
       } else {
         // CSV format
         const csvData = [
-          'source_text,target_text,quality_score,reviewed_at',
+          'source_text,target_text,style,style_description,task_type,template_name,translator,quality_score,reviewed_at',
           ...workItems.map(item => 
-            `"${item.sourceText}","${item.targetText}",${item.qualityScore},"${item.reviewedAt}"`
+            `"${item.sourceText}","${item.targetText}","${item.styleName || 'unknown'}","${item.styleDescription || ''}","${item.taskType || 'unknown'}","${item.templateName || ''}","${item.translatorUsername || ''}",${item.qualityScore},"${item.reviewedAt}"`
           )
         ].join('\n');
         

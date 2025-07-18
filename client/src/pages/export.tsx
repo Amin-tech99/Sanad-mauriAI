@@ -361,9 +361,13 @@ export default function ExportPage() {
                       <ul className="text-sm text-[var(--project-text-secondary)] space-y-1 arabic-text">
                         <li>• النص المصدر (العربية الفصحى)</li>
                         <li>• النص المترجم (الحسانية)</li>
+                        <li>• نمط الترجمة (رسمي، غير رسمي، إلخ)</li>
+                        <li>• وصف النمط وإرشاداته</li>
+                        <li>• نوع المهمة (جملة، فقرة)</li>
+                        <li>• اسم القالب المستخدم</li>
+                        <li>• المترجم المسؤول</li>
                         <li>• تقييم الجودة</li>
                         <li>• تاريخ المراجعة</li>
-                        <li>• معلومات إضافية عن السياق</li>
                       </ul>
                     </div>
 
@@ -372,7 +376,7 @@ export default function ExportPage() {
                         تنسيق JSONL:
                       </h4>
                       <p className="text-sm text-[var(--project-text-secondary)] arabic-text">
-                        مثالي لتدريب نماذج الذكاء الاصطناعي ومعالجة البيانات المتقدمة
+                        مثالي لتدريب نماذج الذكاء الاصطناعي مع معلومات النمط والسياق لتحسين جودة الترجمة
                       </p>
                     </div>
 
