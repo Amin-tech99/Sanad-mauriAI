@@ -164,6 +164,57 @@
       max-height: 400px;
       font-size: 1rem;
     }
+    
+    /* Better mobile touch targets */
+    button {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    /* Improved mobile text readability */
+    .text-xs {
+      font-size: 0.875rem;
+    }
+    
+    .text-sm {
+      font-size: 1rem;
+    }
+    
+    /* Mobile sidebar adjustments */
+    .lg\:mr-64 {
+      margin-right: 0;
+    }
+  }
+  
+  /* Enhanced mobile layout */
+  @media (max-width: 768px) {
+    .arabic-text {
+      font-size: 0.9rem;
+    }
+    
+    /* Better mobile card spacing */
+    .grid {
+      gap: 1rem;
+    }
+    
+    /* Improved mobile form inputs */
+    input, textarea, select {
+      font-size: 16px; /* Prevents zoom on iOS */
+    }
+    
+    /* Mobile-optimized padding */
+    .p-4 {
+      padding: 1rem;
+    }
+    
+    /* Better mobile headers */
+    .text-2xl {
+      font-size: 1.5rem;
+    }
+    
+    .text-3xl {
+      font-size: 1.875rem;
+    }
   }
 
   /* Scrollbar styling for Arabic text areas */

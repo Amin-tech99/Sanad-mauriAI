@@ -40,75 +40,83 @@ export default function Dashboard() {
       <div className="flex-1 lg:mr-64">
         <Header title="لوحة التحكم" />
         <main className="p-4 lg:p-6 overflow-y-auto">
+          {/* Welcome Section */}
+          <div className="mb-8">
+            <div className="bg-gradient-to-r from-[var(--project-primary)] to-[var(--project-primary)]/80 text-white p-6 rounded-lg mb-6">
+              <h2 className="text-2xl font-bold mb-2 arabic-text">مرحباً بك في مشروع سند</h2>
+              <p className="text-white/90 arabic-text">منصة شاملة لإدارة البيانات اللغوية وترجمة النصوص من العربية الفصحى إلى الحسانية</p>
+            </div>
+          </div>
+          
           {/* KPI Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card>
-              <CardContent className="p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
+            <Card className="border-l-4 border-[var(--project-primary)]">
+              <CardContent className="p-4 lg:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-3xl font-bold text-[var(--project-text-primary)]">
+                    <p className="text-2xl lg:text-3xl font-bold text-[var(--project-text-primary)]">
                       {isLoading ? "..." : stats?.approvedSentences || 0}
                     </p>
-                    <p className="text-sm text-[var(--project-text-secondary)] arabic-text">
+                    <p className="text-xs lg:text-sm text-[var(--project-text-secondary)] arabic-text">
                       الجمل المعتمدة
                     </p>
                   </div>
-                  <div className="w-12 h-12 bg-[var(--project-primary)]/10 rounded-full flex items-center justify-center">
-                    <CheckCircle className="w-6 h-6 text-[var(--project-primary)]" />
+                  <div className="w-10 h-10 lg:w-12 lg:h-12 bg-[var(--project-primary)]/10 rounded-full flex items-center justify-center">
+                    <CheckCircle className="w-5 h-5 lg:w-6 lg:h-6 text-[var(--project-primary)]" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardContent className="p-6">
+            <Card className="border-l-4 border-blue-500">
+              <CardContent className="p-4 lg:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-3xl font-bold text-[var(--project-text-primary)]">
+                    <p className="text-2xl lg:text-3xl font-bold text-[var(--project-text-primary)]">
                       {isLoading ? "..." : stats?.todayProduction || 0}
                     </p>
-                    <p className="text-sm text-[var(--project-text-secondary)] arabic-text">
+                    <p className="text-xs lg:text-sm text-[var(--project-text-secondary)] arabic-text">
                       إنتاج اليوم
                     </p>
                   </div>
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Calendar className="w-6 h-6 text-blue-600" />
+                  <div className="w-10 h-10 lg:w-12 lg:h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Calendar className="w-5 h-5 lg:w-6 lg:h-6 text-blue-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardContent className="p-6">
+            <Card className="border-l-4 border-yellow-500">
+              <CardContent className="p-4 lg:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-3xl font-bold text-[var(--project-text-primary)]">
+                    <p className="text-2xl lg:text-3xl font-bold text-[var(--project-text-primary)]">
                       {isLoading ? "..." : stats?.qaQueue || 0}
                     </p>
-                    <p className="text-sm text-[var(--project-text-secondary)] arabic-text">
+                    <p className="text-xs lg:text-sm text-[var(--project-text-secondary)] arabic-text">
                       مهام في المراجعة
                     </p>
                   </div>
-                  <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-                    <Clock className="w-6 h-6 text-yellow-600" />
+                  <div className="w-10 h-10 lg:w-12 lg:h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                    <Clock className="w-5 h-5 lg:w-6 lg:h-6 text-yellow-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardContent className="p-6">
+            <Card className="border-l-4 border-red-500">
+              <CardContent className="p-4 lg:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-3xl font-bold text-[var(--project-text-primary)]">
+                    <p className="text-2xl lg:text-3xl font-bold text-[var(--project-text-primary)]">
                       {isLoading ? "..." : `${stats?.rejectionRate || 0}%`}
                     </p>
-                    <p className="text-sm text-[var(--project-text-secondary)] arabic-text">
+                    <p className="text-xs lg:text-sm text-[var(--project-text-secondary)] arabic-text">
                       معدل الرفض
                     </p>
                   </div>
-                  <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                    <AlertTriangle className="w-6 h-6 text-red-600" />
+                  <div className="w-10 h-10 lg:w-12 lg:h-12 bg-red-100 rounded-full flex items-center justify-center">
+                    <AlertTriangle className="w-5 h-5 lg:w-6 lg:h-6 text-red-600" />
                   </div>
                 </div>
               </CardContent>
@@ -116,32 +124,43 @@ export default function Dashboard() {
           </div>
 
           {/* Charts Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <Card>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mb-8">
+            <Card className="lg:col-span-2">
               <CardHeader>
-                <CardTitle className="arabic-text">الإنتاج اليومي (آخر 30 يومًا)</CardTitle>
+                <CardTitle className="arabic-text text-lg lg:text-xl">نظرة عامة على النظام</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
-                  <div className="text-center text-[var(--project-text-secondary)]">
-                    <TrendingUp className="w-12 h-12 mx-auto mb-2" />
-                    <p className="arabic-text">مخطط الإنتاج اليومي</p>
-                    <p className="text-sm arabic-text">(سيتم التنفيذ مع مكتبة الرسوم البيانية)</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+                  <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
+                    <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <TrendingUp className="w-6 h-6 text-white" />
+                    </div>
+                    <h4 className="font-semibold text-[var(--project-text-primary)] arabic-text">الإنتاج اليومي</h4>
+                    <p className="text-sm text-[var(--project-text-secondary)] arabic-text">تتبع الإنتاج اليومي للمترجمين</p>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="arabic-text">أداء الفريق (هذا الأسبوع)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
-                  <div className="text-center text-[var(--project-text-secondary)]">
-                    <Users className="w-12 h-12 mx-auto mb-2" />
-                    <p className="arabic-text">مخطط أداء الفريق</p>
-                    <p className="text-sm arabic-text">(سيتم التنفيذ مع مكتبة الرسوم البيانية)</p>
+                  
+                  <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
+                    <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <Users className="w-6 h-6 text-white" />
+                    </div>
+                    <h4 className="font-semibold text-[var(--project-text-primary)] arabic-text">أداء الفريق</h4>
+                    <p className="text-sm text-[var(--project-text-secondary)] arabic-text">مراقبة أداء فريق الترجمة</p>
+                  </div>
+                  
+                  <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
+                    <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <CheckCircle className="w-6 h-6 text-white" />
+                    </div>
+                    <h4 className="font-semibold text-[var(--project-text-primary)] arabic-text">الجودة</h4>
+                    <p className="text-sm text-[var(--project-text-secondary)] arabic-text">مراقبة معايير الجودة</p>
+                  </div>
+                  
+                  <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg">
+                    <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <AlertTriangle className="w-6 h-6 text-white" />
+                    </div>
+                    <h4 className="font-semibold text-[var(--project-text-primary)] arabic-text">التحليل</h4>
+                    <p className="text-sm text-[var(--project-text-secondary)] arabic-text">تحليل البيانات والأداء</p>
                   </div>
                 </div>
               </CardContent>

@@ -26,25 +26,55 @@ import {
 
 const roleNavigation = {
   admin: [
-    { icon: BarChart3, text: "لوحة التحكم", path: "/" },
-    { icon: BookOpen, text: "مكتبة المصادر", path: "/sources" },
-    { icon: FileText, text: "نماذج التعليمات", path: "/templates" },
-    { icon: Package, text: "إنشاء حزم العمل", path: "/work-packets" },
-    { icon: Users, text: "إدارة المستخدمين", path: "/users" },
-    { icon: Languages, text: "المصطلحات المعتمدة", path: "/approved-terms" },
-    { icon: Tag, text: "تصنيفات الأسلوب", path: "/style-tags" },
-    { icon: Library, text: "المعجم السياقي", path: "/contextual-lexicon" },
-    { icon: FileText, text: "اقتراحات الكلمات", path: "/word-suggestions" },
-    { icon: Shield, text: "التحكم في المنصة", path: "/platform-control" },
-    { icon: Download, text: "تصدير البيانات", path: "/export" },
+    {
+      section: "الإدارة الرئيسية",
+      items: [
+        { icon: BarChart3, text: "لوحة التحكم", path: "/" },
+        { icon: Shield, text: "التحكم في المنصة", path: "/platform-control" },
+        { icon: Users, text: "إدارة المستخدمين", path: "/users" },
+      ]
+    },
+    {
+      section: "إدارة المحتوى",
+      items: [
+        { icon: BookOpen, text: "مكتبة المصادر", path: "/sources" },
+        { icon: FileText, text: "نماذج التعليمات", path: "/templates" },
+        { icon: Package, text: "إنشاء حزم العمل", path: "/work-packets" },
+      ]
+    },
+    {
+      section: "أدوات اللغة",
+      items: [
+        { icon: Languages, text: "المصطلحات المعتمدة", path: "/approved-terms" },
+        { icon: Tag, text: "تصنيفات الأسلوب", path: "/style-tags" },
+        { icon: Library, text: "المعجم السياقي", path: "/contextual-lexicon" },
+        { icon: FileText, text: "اقتراحات الكلمات", path: "/word-suggestions" },
+      ]
+    },
+    {
+      section: "البيانات والتصدير",
+      items: [
+        { icon: Download, text: "تصدير البيانات", path: "/export" },
+      ]
+    }
   ],
   translator: [
-    { icon: ClipboardList, text: "قائمة مهامي", path: "/my-work" },
-    { icon: Edit, text: "مساحة العمل", path: "/workspace" },
+    {
+      section: "مساحة العمل",
+      items: [
+        { icon: ClipboardList, text: "قائمة مهامي", path: "/my-work" },
+        { icon: Edit, text: "مساحة العمل", path: "/workspace" },
+      ]
+    }
   ],
   qa: [
-    { icon: CheckCircle, text: "مهام المراجعة", path: "/qa-queue" },
-    { icon: Search, text: "مراجعة الجودة", path: "/qa-review" },
+    {
+      section: "مراجعة الجودة",
+      items: [
+        { icon: CheckCircle, text: "مهام المراجعة", path: "/qa-queue" },
+        { icon: Search, text: "مراجعة الجودة", path: "/qa-review" },
+      ]
+    }
   ],
 };
 
@@ -58,28 +88,31 @@ export default function Sidebar() {
 
   // Filter navigation based on enabled features
   const baseNavigation = roleNavigation[user.role as keyof typeof roleNavigation] || [];
-  const navigation = baseNavigation.filter((item) => {
-    // Map navigation items to feature keys
-    const featureMap: Record<string, string> = {
-      "/users": "user_management",
-      "/sources": "source_management",
-      "/templates": "template_management",
-      "/work-packets": "work_packet_creation",
-      "/approved-terms": "approved_terms",
-      "/style-tags": "style_tags",
-      "/contextual-lexicon": "contextual_lexicon",
-      "/word-suggestions": "word_suggestions",
-      "/export": "data_export",
-      "/my-work": "translator_workspace",
-      "/workspace": "translator_workspace",
-      "/qa-queue": "qa_review",
-      "/qa-review": "qa_review",
-      "/": "dashboard_analytics",
-    };
-    
-    const featureKey = featureMap[item.path];
-    return !featureKey || isFeatureEnabled(featureKey);
-  });
+  const navigation = baseNavigation.map((section) => ({
+    ...section,
+    items: section.items.filter((item) => {
+      // Map navigation items to feature keys
+      const featureMap: Record<string, string> = {
+        "/users": "user_management",
+        "/sources": "source_management",
+        "/templates": "template_management",
+        "/work-packets": "work_packet_creation",
+        "/approved-terms": "approved_terms",
+        "/style-tags": "style_tags",
+        "/contextual-lexicon": "contextual_lexicon",
+        "/word-suggestions": "word_suggestions",
+        "/export": "data_export",
+        "/my-work": "translator_workspace",
+        "/workspace": "translator_workspace",
+        "/qa-queue": "qa_review",
+        "/qa-review": "qa_review",
+        "/": "dashboard_analytics",
+      };
+      
+      const featureKey = featureMap[item.path];
+      return !featureKey || isFeatureEnabled(featureKey);
+    })
+  })).filter(section => section.items.length > 0);
 
   const getRoleName = (role: string) => {
     const roleNames = {
@@ -107,7 +140,7 @@ export default function Sidebar() {
       
       {/* Sidebar */}
       <div className={cn(
-        "fixed top-0 right-0 h-full w-64 bg-[var(--project-sidebar)] border-l border-[var(--project-border)] z-50",
+        "fixed top-0 right-0 h-full w-80 sm:w-64 bg-[var(--project-sidebar)] border-l border-[var(--project-border)] z-50",
         "transform transition-transform duration-300 ease-in-out",
         "lg:translate-x-0",
         isOpen ? "translate-x-0" : "translate-x-full"
@@ -140,28 +173,38 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="p-4 flex-1">
-        <div className="space-y-1">
-          {navigation.map((item) => {
-            const Icon = item.icon;
-            const isActive = location === item.path;
-            
-            return (
-              <Button
-                key={item.path}
-                onClick={() => setLocation(item.path)}
-                variant="ghost"
-                className={`w-full justify-start text-right flex items-center space-x-3 space-x-reverse px-4 py-3 transition-colors mb-1 arabic-text ${
-                  isActive 
-                    ? "text-[var(--project-primary)] bg-[var(--project-primary)]/10" 
-                    : "text-[var(--project-text-secondary)] hover:text-[var(--project-text-primary)] hover:bg-[var(--project-primary)]/5"
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-                <span>{item.text}</span>
-              </Button>
-            );
-          })}
+      <nav className="p-4 flex-1 overflow-y-auto">
+        <div className="space-y-6">
+          {navigation.map((section, sectionIndex) => (
+            <div key={sectionIndex} className="space-y-2">
+              <div className="px-2 py-1">
+                <h3 className="text-xs font-semibold text-[var(--project-text-secondary)] uppercase arabic-text">
+                  {section.section}
+                </h3>
+              </div>
+              <div className="space-y-1">
+                {section.items.map((item) => {
+                  const isActive = location === item.path;
+                  
+                  return (
+                    <Button
+                      key={item.path}
+                      onClick={() => setLocation(item.path)}
+                      variant="ghost"
+                      className={`w-full justify-start text-right flex items-center space-x-3 space-x-reverse px-4 py-3 transition-colors mb-1 arabic-text ${
+                        isActive 
+                          ? "text-[var(--project-primary)] bg-[var(--project-primary)]/10 border-r-2 border-[var(--project-primary)]" 
+                          : "text-[var(--project-text-secondary)] hover:text-[var(--project-text-primary)] hover:bg-[var(--project-primary)]/5"
+                      }`}
+                    >
+                      <item.icon className="w-5 h-5" />
+                      <span className="text-sm">{item.text}</span>
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       </nav>
 
