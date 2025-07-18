@@ -142,7 +142,7 @@ export default function Sidebar() {
       
       {/* Sidebar */}
       <div className={cn(
-        "fixed top-0 right-0 h-full w-80 sm:w-72 bg-gradient-to-b from-[var(--project-sidebar)] to-gray-50/30 border-l border-[var(--project-border)] z-50 shadow-xl",
+        "fixed top-0 right-0 h-full w-72 bg-[var(--project-sidebar)] border-l border-[var(--project-border)] z-50 shadow-xl",
         "transform transition-transform duration-300 ease-in-out",
         "lg:translate-x-0",
         isOpen ? "translate-x-0" : "translate-x-full"
@@ -214,7 +214,7 @@ export default function Sidebar() {
       </nav>
 
       {/* User Section */}
-      <div className="absolute bottom-0 right-0 left-0 p-4 border-t border-[var(--project-border)] bg-gradient-to-t from-[var(--project-sidebar)] to-transparent">
+      <div className="absolute bottom-0 right-0 left-0 p-4 border-t border-[var(--project-border)] bg-[var(--project-sidebar)]">
         <div className="bg-white rounded-lg p-3 shadow-sm border border-[var(--project-border)]/50">
           <div className="flex items-center space-x-3 space-x-reverse mb-3">
             <div className="w-10 h-10 bg-gradient-to-br from-[var(--project-primary)] to-[var(--project-primary)]/70 rounded-full flex items-center justify-center">

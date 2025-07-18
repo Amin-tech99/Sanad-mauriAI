@@ -22,7 +22,7 @@ export default function Templates() {
     return (
       <div className="flex h-screen">
         <Sidebar />
-        <div className="flex-1 mr-64">
+        <div className="flex-1 lg:mr-72">
           <Header title="غير مخول" />
           <main className="p-6">
             <div className="text-center">
@@ -38,7 +38,7 @@ export default function Templates() {
   return (
     <div className="flex h-screen">
       <Sidebar />
-      <div className="flex-1 mr-64">
+      <div className="flex-1 lg:mr-72">
         <Header title="مكتبة نماذج التعليمات" />
         <main className="p-6">
           <div className="flex justify-between items-center mb-6">

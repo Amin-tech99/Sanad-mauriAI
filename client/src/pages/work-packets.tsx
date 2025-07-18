@@ -121,7 +121,7 @@ export default function WorkPackets() {
     return (
       <div className="flex h-screen">
         <Sidebar />
-        <div className="flex-1 mr-64">
+        <div className="flex-1 lg:mr-72">
           <Header title="غير مخول" />
           <main className="p-6">
             <div className="text-center">
@@ -137,7 +137,7 @@ export default function WorkPackets() {
   return (
     <div className="flex h-screen">
       <Sidebar />
-      <div className="flex-1 mr-64">
+      <div className="flex-1 lg:mr-72">
         <Header title="إنشاء حزم العمل" />
         <main className="p-6">
           <div className="max-w-4xl mx-auto">

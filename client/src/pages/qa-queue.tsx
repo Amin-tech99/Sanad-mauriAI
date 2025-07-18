@@ -68,7 +68,7 @@ export default function QAQueue() {
     return (
       <div className="flex h-screen">
         <Sidebar />
-        <div className="flex-1 mr-64">
+        <div className="flex-1 lg:mr-72">
           <Header title="غير مخول" />
           <main className="p-6">
             <div className="text-center">
@@ -84,7 +84,7 @@ export default function QAQueue() {
   return (
     <div className="flex h-screen">
       <Sidebar />
-      <div className="flex-1 mr-64">
+      <div className="flex-1 lg:mr-72">
         <Header title="مهام المراجعة" />
         <main className="p-6">
           <div className="mb-6">

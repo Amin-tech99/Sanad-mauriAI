@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
 import UploadArticleModal from "@/components/modals/upload-article-modal";
@@ -15,13 +16,36 @@ import type { Source } from "@shared/schema";
 
 export default function Sources() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedSource, setSelectedSource] = useState<Source | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
 
   const { data: sources = [], isLoading } = useQuery<Source[]>({
     queryKey: ["/api/sources"],
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("DELETE", `/api/sources/${id}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم الحذف",
+        description: "تم حذف المصدر بنجاح",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/sources"] });
+    },
+    onError: () => {
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء حذف المصدر",
+        variant: "destructive",
+      });
+    },
   });
 
   const filteredSources = sources.filter(source => {
@@ -53,9 +77,9 @@ export default function Sources() {
     return (
       <div className="flex h-screen">
         <Sidebar />
-        <div className="flex-1 mr-64">
+        <div className="flex-1 lg:mr-72">
           <Header title="غير مخول" />
-          <main className="p-6">
+          <main className="p-4 lg:p-6">
             <div className="text-center">
               <h2 className="text-xl font-bold arabic-text">غير مخول للوصول</h2>
             </div>
@@ -68,9 +92,9 @@ export default function Sources() {
   return (
     <div className="flex h-screen">
       <Sidebar />
-      <div className="flex-1 mr-64">
+      <div className="flex-1 lg:mr-72">
         <Header title="مكتبة المصادر" />
-        <main className="p-6">
+        <main className="p-4 lg:p-6 overflow-y-auto">
           <div className="flex justify-between items-center mb-6">
             <div>
               <h2 className="text-2xl font-bold text-[var(--project-text-primary)] arabic-text">
@@ -193,13 +217,38 @@ export default function Sources() {
                     </div>
                     
                     <div className="flex space-x-2 space-x-reverse">
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => setSelectedSource(source)}
+                        className="hover:bg-[var(--project-primary)]/5"
+                        title="عرض التفاصيل"
+                      >
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedSource(source);
+                          setShowEditModal(true);
+                        }}
+                        className="hover:bg-blue-50"
+                        title="تعديل"
+                      >
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button size="sm" variant="outline" className="text-[var(--project-error)]">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="text-[var(--project-error)] hover:bg-red-50"
+                        onClick={() => {
+                          if (confirm('هل أنت متأكد من حذف هذا المصدر؟')) {
+                            deleteMutation.mutate(source.id);
+                          }
+                        }}
+                        title="حذف"
+                      >
                         <Trash className="w-4 h-4" />
                       </Button>
                     </div>
@@ -213,6 +262,51 @@ export default function Sources() {
             isOpen={showUploadModal} 
             onClose={() => setShowUploadModal(false)} 
           />
+          
+          {/* View Source Modal */}
+          {selectedSource && !showEditModal && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <Card className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <CardHeader>
+                  <CardTitle className="text-xl arabic-text">{selectedSource.title}</CardTitle>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => setSelectedSource(null)}
+                    className="absolute top-4 left-4"
+                  >
+                    ✕
+                  </Button>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold arabic-text mb-2">المحتوى:</h4>
+                    <p className="text-[var(--project-text-secondary)] arabic-text whitespace-pre-wrap">
+                      {selectedSource.content}
+                    </p>
+                  </div>
+                  {selectedSource.tags && selectedSource.tags.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold arabic-text mb-2">التصنيفات:</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedSource.tags.map((tag, index) => (
+                          <Badge key={index} variant="secondary" className="arabic-text">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center pt-4 border-t">
+                    <div className="text-sm text-[var(--project-text-secondary)]">
+                      {selectedSource.createdAt && new Date(selectedSource.createdAt).toLocaleDateString('ar-SA')}
+                    </div>
+                    {getStatusBadge(selectedSource.status)}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </main>
       </div>
     </div>

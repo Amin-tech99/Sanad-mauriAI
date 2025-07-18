@@ -36,7 +36,7 @@ export default function ApprovedTerms() {
     return (
       <div className="flex h-screen">
         <Sidebar />
-        <div className="flex-1 lg:mr-64">
+        <div className="flex-1 lg:mr-72">
           <Header title="غير مخول" />
           <main className="p-4 lg:p-6">
             <div className="text-center">
@@ -100,7 +100,7 @@ export default function ApprovedTerms() {
   return (
     <div className="flex h-screen">
       <Sidebar />
-      <div className="flex-1 lg:mr-64">
+      <div className="flex-1 lg:mr-72">
         <Header title="المصطلحات المعتمدة" />
         <main className="p-4 lg:p-6 overflow-y-auto">
           {/* Header Actions */}

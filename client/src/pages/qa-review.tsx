@@ -169,9 +169,9 @@ export default function QAReview() {
     return (
       <div className="flex h-screen">
         <Sidebar />
-        <div className="flex-1 mr-64">
+        <div className="flex-1 lg:mr-72">
           <Header title="غير مخول" />
-          <main className="p-6">
+          <main className="p-4 lg:p-6">
             <div className="text-center">
               <AlertTriangle className="w-16 h-16 text-[var(--project-error)] mx-auto mb-4" />
               <h2 className="text-xl font-bold arabic-text">غير مخول للوصول</h2>
@@ -186,9 +186,9 @@ export default function QAReview() {
     return (
       <div className="flex h-screen">
         <Sidebar />
-        <div className="flex-1 mr-64">
+        <div className="flex-1 lg:mr-72">
           <Header title="مراجعة الجودة" />
-          <main className="p-6">
+          <main className="p-4 lg:p-6">
             <div className="text-center py-8">
               <p className="text-[var(--project-text-secondary)] arabic-text">جاري التحميل...</p>
             </div>
@@ -202,9 +202,9 @@ export default function QAReview() {
     return (
       <div className="flex h-screen">
         <Sidebar />
-        <div className="flex-1 mr-64">
+        <div className="flex-1 lg:mr-72">
           <Header title="مراجعة الجودة" />
-          <main className="p-6">
+          <main className="p-4 lg:p-6">
             <Card>
               <CardContent className="p-8 text-center">
                 <h3 className="text-lg font-medium text-[var(--project-text-primary)] mb-2 arabic-text">
@@ -231,9 +231,9 @@ export default function QAReview() {
   return (
     <div className="flex h-screen">
       <Sidebar />
-      <div className="flex-1 mr-64">
+      <div className="flex-1 lg:mr-72">
         <Header title="مراجعة الجودة" />
-        <main className="p-6">
+        <main className="p-4 lg:p-6 overflow-y-auto">
           {/* Task Header */}
           <Card className="mb-6">
             <CardContent className="p-6">
