@@ -176,14 +176,25 @@ export class DatabaseStorage implements IStorage {
     await db.update(sources).set({ status }).where(eq(sources.id, id));
   }
 
-  async deleteSource(id: number): Promise<void> {
+  async deleteSource(id: number, cascade: boolean = false): Promise<void> {
     // First check if there are any work packets using this source
     const dependentPackets = await db.select()
       .from(workPackets)
       .where(eq(workPackets.sourceId, id));
     
-    if (dependentPackets.length > 0) {
+    if (dependentPackets.length > 0 && !cascade) {
       throw new Error('Cannot delete source: There are work packets using this source');
+    }
+    
+    if (cascade && dependentPackets.length > 0) {
+      // Delete all work items from dependent packets
+      for (const packet of dependentPackets) {
+        await db.delete(workItems).where(eq(workItems.packetId, packet.id));
+        await db.delete(workItemAssignments).where(eq(workItemAssignments.packetId, packet.id));
+      }
+      
+      // Delete all work packets
+      await db.delete(workPackets).where(eq(workPackets.sourceId, id));
     }
     
     await db.delete(sources).where(eq(sources.id, id));

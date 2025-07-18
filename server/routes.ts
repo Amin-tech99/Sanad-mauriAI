@@ -71,16 +71,19 @@ export function registerRoutes(app: Express): Server {
   app.delete("/api/sources/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      const cascade = req.query.cascade === 'true';
+      
       if (isNaN(id)) {
         return res.status(400).json({ error: "Invalid source ID" });
       }
       
-      await storage.deleteSource(id);
+      await storage.deleteSource(id, cascade);
       res.status(200).json({ message: "Source deleted successfully" });
     } catch (error: any) {
       if (error.message?.includes('work packets')) {
         return res.status(400).json({ 
-          error: "لا يمكن حذف هذا المصدر لأنه مرتبط بحزم عمل. يجب حذف حزم العمل أولاً." 
+          error: "لا يمكن حذف هذا المصدر لأنه مرتبط بحزم عمل. يجب حذف حزم العمل أولاً.",
+          hasWorkPackets: true
         });
       }
       res.status(500).json({ error: "فشل حذف المصدر" });

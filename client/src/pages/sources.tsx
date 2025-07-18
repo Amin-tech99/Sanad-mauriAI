@@ -29,8 +29,10 @@ export default function Sources() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/sources/${id}`);
+    mutationFn: async ({ id, cascade = false }: { id: number; cascade?: boolean }) => {
+      const url = cascade ? `/api/sources/${id}?cascade=true` : `/api/sources/${id}`;
+      const response = await apiRequest("DELETE", url);
+      return response;
     },
     onSuccess: () => {
       toast({
@@ -39,13 +41,34 @@ export default function Sources() {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/sources"] });
     },
-    onError: (error: any) => {
-      const errorMessage = error?.message || error?.response?.data?.error || "حدث خطأ أثناء حذف المصدر";
-      toast({
-        title: "خطأ",
-        description: errorMessage,
-        variant: "destructive",
-      });
+    onError: async (error: any, variables) => {
+      // Extract error data from the response
+      let errorData;
+      try {
+        const response = error.response || error;
+        errorData = response.data || (await response.json?.()) || {};
+      } catch {
+        errorData = {};
+      }
+      
+      if (errorData?.hasWorkPackets) {
+        // Show confirmation dialog for cascade delete
+        const confirmCascade = confirm(
+          "هذا المصدر مرتبط بحزم عمل. هل تريد حذف المصدر مع جميع حزم العمل والعناصر المرتبطة به؟\n\nتحذير: هذا الإجراء لا يمكن التراجع عنه!"
+        );
+        
+        if (confirmCascade && variables?.id) {
+          // Retry with cascade option using the original variables
+          deleteMutation.mutate({ id: variables.id, cascade: true });
+        }
+      } else {
+        const errorMessage = errorData?.error || "حدث خطأ أثناء حذف المصدر";
+        toast({
+          title: "خطأ",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     },
   });
 
@@ -245,7 +268,7 @@ export default function Sources() {
                         className="text-[var(--project-error)] hover:bg-red-50"
                         onClick={() => {
                           if (confirm('هل أنت متأكد من حذف هذا المصدر؟')) {
-                            deleteMutation.mutate(source.id);
+                            deleteMutation.mutate({ id: source.id });
                           }
                         }}
                         title="حذف"
