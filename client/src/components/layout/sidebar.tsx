@@ -140,7 +140,7 @@ export default function Sidebar() {
       
       {/* Sidebar */}
       <div className={cn(
-        "fixed top-0 right-0 h-full w-80 sm:w-64 bg-[var(--project-sidebar)] border-l border-[var(--project-border)] z-50",
+        "fixed top-0 right-0 h-full w-80 sm:w-72 bg-gradient-to-b from-[var(--project-sidebar)] to-gray-50/30 border-l border-[var(--project-border)] z-50 shadow-xl",
         "transform transition-transform duration-300 ease-in-out",
         "lg:translate-x-0",
         isOpen ? "translate-x-0" : "translate-x-full"
@@ -156,31 +156,32 @@ export default function Sidebar() {
         </Button>
         
         {/* Logo Section */}
-        <div className="p-6 border-b border-[var(--project-border)]">
-        <div className="flex items-center space-x-3 space-x-reverse">
-          <div className="bg-[var(--project-primary)]/10 w-10 h-10 rounded-full flex items-center justify-center">
-            <Languages className="w-5 h-5 text-[var(--project-primary)]" />
-          </div>
-          <div>
-            <h2 className="font-bold text-[var(--project-text-primary)] arabic-text">
-              مشروع سند
-            </h2>
-            <p className="text-xs text-[var(--project-text-secondary)] arabic-text">
-              منصة البيانات
-            </p>
+        <div className="p-4 lg:p-6 border-b border-[var(--project-border)]">
+          <div className="flex items-center space-x-3 space-x-reverse">
+            <div className="bg-gradient-to-br from-[var(--project-primary)] to-[var(--project-primary)]/70 w-12 h-12 rounded-xl flex items-center justify-center shadow-lg">
+              <Languages className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h2 className="font-bold text-lg text-[var(--project-text-primary)] arabic-text">
+                مشروع سند
+              </h2>
+              <p className="text-xs text-[var(--project-text-secondary)] arabic-text">
+                منصة البيانات اللغوية
+              </p>
+            </div>
           </div>
         </div>
-      </div>
 
       {/* Navigation */}
       <nav className="p-4 flex-1 overflow-y-auto">
-        <div className="space-y-6">
+        <div className="space-y-1">
           {navigation.map((section, sectionIndex) => (
-            <div key={sectionIndex} className="space-y-2">
-              <div className="px-2 py-1">
-                <h3 className="text-xs font-semibold text-[var(--project-text-secondary)] uppercase arabic-text">
+            <div key={sectionIndex} className="mb-6">
+              <div className="px-3 py-2 mb-3">
+                <h3 className="text-xs font-bold text-[var(--project-text-secondary)] uppercase arabic-text tracking-wider">
                   {section.section}
                 </h3>
+                <div className="w-12 h-0.5 bg-gradient-to-r from-[var(--project-primary)] to-[var(--project-primary)]/30 mt-1 rounded-full"></div>
               </div>
               <div className="space-y-1">
                 {section.items.map((item) => {
@@ -191,14 +192,16 @@ export default function Sidebar() {
                       key={item.path}
                       onClick={() => setLocation(item.path)}
                       variant="ghost"
-                      className={`w-full justify-start text-right flex items-center space-x-3 space-x-reverse px-4 py-3 transition-colors mb-1 arabic-text ${
+                      className={`w-full justify-start text-right flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg transition-all duration-200 mb-1 arabic-text ${
                         isActive 
-                          ? "text-[var(--project-primary)] bg-[var(--project-primary)]/10 border-r-2 border-[var(--project-primary)]" 
-                          : "text-[var(--project-text-secondary)] hover:text-[var(--project-text-primary)] hover:bg-[var(--project-primary)]/5"
+                          ? "text-[var(--project-primary)] bg-gradient-to-r from-[var(--project-primary)]/10 to-[var(--project-primary)]/5 border-r-3 border-[var(--project-primary)] shadow-sm" 
+                          : "text-[var(--project-text-secondary)] hover:text-[var(--project-text-primary)] hover:bg-[var(--project-primary)]/5 hover:shadow-sm"
                       }`}
                     >
-                      <item.icon className="w-5 h-5" />
-                      <span className="text-sm">{item.text}</span>
+                      <div className={`p-1 rounded-md ${isActive ? 'bg-[var(--project-primary)]/10' : ''}`}>
+                        <item.icon className="w-5 h-5" />
+                      </div>
+                      <span className="text-sm font-medium">{item.text}</span>
                     </Button>
                   );
                 })}
@@ -209,29 +212,31 @@ export default function Sidebar() {
       </nav>
 
       {/* User Section */}
-      <div className="absolute bottom-0 right-0 left-0 p-4 border-t border-[var(--project-border)]">
-        <div className="flex items-center space-x-3 space-x-reverse mb-3">
-          <div className="w-8 h-8 bg-[var(--project-primary)]/20 rounded-full flex items-center justify-center">
-            <Users className="w-4 h-4 text-[var(--project-primary)]" />
+      <div className="absolute bottom-0 right-0 left-0 p-4 border-t border-[var(--project-border)] bg-gradient-to-t from-[var(--project-sidebar)] to-transparent">
+        <div className="bg-white rounded-lg p-3 shadow-sm border border-[var(--project-border)]/50">
+          <div className="flex items-center space-x-3 space-x-reverse mb-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-[var(--project-primary)] to-[var(--project-primary)]/70 rounded-full flex items-center justify-center">
+              <Users className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-[var(--project-text-primary)] arabic-text">
+                {user.username}
+              </p>
+              <p className="text-xs text-[var(--project-text-secondary)] arabic-text">
+                {getRoleName(user.role)}
+              </p>
+            </div>
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-[var(--project-text-primary)] arabic-text">
-              {user.username}
-            </p>
-            <p className="text-xs text-[var(--project-text-secondary)] arabic-text">
-              {getRoleName(user.role)}
-            </p>
-          </div>
+          <Button
+            onClick={() => logoutMutation.mutate()}
+            variant="ghost"
+            className="w-full justify-start text-right flex items-center space-x-3 space-x-reverse px-3 py-2 text-[var(--project-text-secondary)] hover:text-[var(--project-error)] hover:bg-[var(--project-error)]/5 rounded-lg transition-all duration-200 arabic-text"
+            disabled={logoutMutation.isPending}
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="text-sm font-medium">تسجيل الخروج</span>
+          </Button>
         </div>
-        <Button
-          onClick={() => logoutMutation.mutate()}
-          variant="ghost"
-          className="w-full text-right text-sm text-[var(--project-error)] hover:bg-[var(--project-error)]/10 py-2 px-3 transition-colors arabic-text"
-          disabled={logoutMutation.isPending}
-        >
-          <LogOut className="w-4 h-4 ml-2" />
-          تسجيل الخروج
-        </Button>
       </div>
     </div>
     </>

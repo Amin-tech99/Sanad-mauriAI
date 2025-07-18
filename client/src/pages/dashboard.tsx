@@ -18,7 +18,7 @@ export default function Dashboard() {
     return (
       <div className="flex h-screen">
         <Sidebar />
-        <div className="flex-1 lg:mr-64">
+        <div className="flex-1 lg:mr-72">
           <Header title="غير مخول" />
           <main className="p-4 lg:p-6">
             <div className="text-center">
@@ -37,7 +37,7 @@ export default function Dashboard() {
   return (
     <div className="flex h-screen">
       <Sidebar />
-      <div className="flex-1 lg:mr-64">
+      <div className="flex-1 lg:mr-72">
         <Header title="لوحة التحكم" />
         <main className="p-4 lg:p-6 overflow-y-auto">
           {/* Welcome Section */}

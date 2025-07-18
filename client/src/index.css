@@ -184,6 +184,15 @@
     .lg\:mr-64 {
       margin-right: 0;
     }
+    
+    .lg\:mr-72 {
+      margin-right: 0;
+    }
+    
+    /* Mobile sidebar width adjustment */
+    .sm\:w-72 {
+      width: 18rem;
+    }
   }
   
   /* Enhanced mobile layout */
