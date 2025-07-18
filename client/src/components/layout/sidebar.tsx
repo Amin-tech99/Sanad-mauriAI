@@ -89,6 +89,11 @@ export default function Sidebar() {
   // Get navigation for user role (temporarily show all items)
   const navigation = roleNavigation[user.role as keyof typeof roleNavigation] || [];
   
+  // Debug log to check navigation items
+  console.log('User role:', user.role);
+  console.log('Navigation sections:', navigation.length);
+  console.log('Total items:', navigation.reduce((acc, section) => acc + section.items.length, 0));
+  
   // Feature filtering temporarily disabled to show all navigation options
   // const filteredNavigation = baseNavigation.map((section) => ({
   //   ...section,
@@ -142,7 +147,7 @@ export default function Sidebar() {
       
       {/* Sidebar */}
       <div className={cn(
-        "fixed top-0 right-0 h-full w-72 bg-[var(--project-sidebar)] border-l border-[var(--project-border)] z-50 shadow-xl",
+        "fixed top-0 right-0 h-full w-72 bg-[var(--project-sidebar)] border-l border-[var(--project-border)] z-50 shadow-xl flex flex-col",
         "transform transition-transform duration-300 ease-in-out",
         "lg:translate-x-0",
         isOpen ? "translate-x-0" : "translate-x-full"
@@ -158,13 +163,13 @@ export default function Sidebar() {
         </Button>
         
         {/* Logo Section */}
-        <div className="p-4 lg:p-6 border-b border-[var(--project-border)]">
+        <div className="p-4 border-b border-[var(--project-border)]">
           <div className="flex items-center space-x-3 space-x-reverse">
-            <div className="bg-gradient-to-br from-[var(--project-primary)] to-[var(--project-primary)]/70 w-12 h-12 rounded-xl flex items-center justify-center shadow-lg">
-              <Languages className="w-6 h-6 text-white" />
+            <div className="bg-gradient-to-br from-[var(--project-primary)] to-[var(--project-primary)]/70 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg">
+              <Languages className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1">
-              <h2 className="font-bold text-lg text-[var(--project-text-primary)] arabic-text">
+              <h2 className="font-bold text-base text-[var(--project-text-primary)] arabic-text">
                 مشروع سند
               </h2>
               <p className="text-xs text-[var(--project-text-secondary)] arabic-text">
@@ -175,11 +180,11 @@ export default function Sidebar() {
         </div>
 
       {/* Navigation */}
-      <nav className="p-4 flex-1 overflow-y-auto">
-        <div className="space-y-1">
+      <nav className="flex-1 overflow-y-auto p-4">
+        <div className="space-y-1 pb-4">
           {navigation.map((section, sectionIndex) => (
-            <div key={sectionIndex} className="mb-6">
-              <div className="px-3 py-2 mb-3">
+            <div key={sectionIndex} className="mb-4">
+              <div className="px-3 py-2 mb-2">
                 <h3 className="text-xs font-bold text-[var(--project-text-secondary)] uppercase arabic-text tracking-wider">
                   {section.section}
                 </h3>
@@ -194,7 +199,7 @@ export default function Sidebar() {
                       key={item.path}
                       onClick={() => setLocation(item.path)}
                       variant="ghost"
-                      className={`w-full justify-start text-right flex items-center space-x-3 space-x-reverse px-4 py-3 rounded-lg transition-all duration-200 mb-1 arabic-text ${
+                      className={`w-full justify-start text-right flex items-center space-x-3 space-x-reverse px-3 py-2 rounded-lg transition-all duration-200 arabic-text ${
                         isActive 
                           ? "text-[var(--project-primary)] bg-gradient-to-r from-[var(--project-primary)]/10 to-[var(--project-primary)]/5 border-r-3 border-[var(--project-primary)] shadow-sm" 
                           : "text-[var(--project-text-secondary)] hover:text-[var(--project-text-primary)] hover:bg-[var(--project-primary)]/5 hover:shadow-sm"
@@ -203,7 +208,7 @@ export default function Sidebar() {
                       <div className={`p-1 rounded-md ${isActive ? 'bg-[var(--project-primary)]/10' : ''}`}>
                         <item.icon className="w-5 h-5" />
                       </div>
-                      <span className="text-sm font-medium">{item.text}</span>
+                      <span className="text-sm">{item.text}</span>
                     </Button>
                   );
                 })}
@@ -214,7 +219,7 @@ export default function Sidebar() {
       </nav>
 
       {/* User Section */}
-      <div className="absolute bottom-0 right-0 left-0 p-4 border-t border-[var(--project-border)] bg-[var(--project-sidebar)]">
+      <div className="p-4 border-t border-[var(--project-border)] bg-[var(--project-sidebar)]">
         <div className="bg-white rounded-lg p-3 shadow-sm border border-[var(--project-border)]/50">
           <div className="flex items-center space-x-3 space-x-reverse mb-3">
             <div className="w-10 h-10 bg-gradient-to-br from-[var(--project-primary)] to-[var(--project-primary)]/70 rounded-full flex items-center justify-center">
