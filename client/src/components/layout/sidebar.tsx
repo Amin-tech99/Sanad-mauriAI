@@ -1,6 +1,9 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
+import { useMobileMenu } from "@/hooks/use-mobile-menu";
+import { useEffect } from "react";
+import { cn } from "@/lib/utils";
 import { 
   BarChart3, 
   BookOpen, 
@@ -13,7 +16,8 @@ import {
   CheckCircle, 
   Search,
   Languages,
-  LogOut
+  LogOut,
+  X
 } from "lucide-react";
 
 const roleNavigation = {
@@ -38,6 +42,7 @@ const roleNavigation = {
 export default function Sidebar() {
   const { user, logoutMutation } = useAuth();
   const [location, setLocation] = useLocation();
+  const { isOpen, close } = useMobileMenu();
 
   if (!user) return null;
 
@@ -52,10 +57,40 @@ export default function Sidebar() {
     return roleNames[role as keyof typeof roleNames] || role;
   };
 
+  // Close mobile menu on navigation
+  useEffect(() => {
+    close();
+  }, [location]);
+
   return (
-    <div className="fixed right-0 top-0 h-full w-64 bg-sidebar shadow-lg border-l border-[var(--project-border)] z-10">
-      {/* Logo Section */}
-      <div className="p-6 border-b border-[var(--project-border)]">
+    <>
+      {/* Mobile Backdrop */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={close}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div className={cn(
+        "fixed top-0 right-0 h-full w-64 bg-[var(--project-sidebar)] border-l border-[var(--project-border)] z-50",
+        "transform transition-transform duration-300 ease-in-out",
+        "lg:translate-x-0",
+        isOpen ? "translate-x-0" : "translate-x-full"
+      )}>
+        {/* Mobile Close Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={close}
+          className="absolute top-4 left-4 lg:hidden"
+        >
+          <X className="h-5 w-5" />
+        </Button>
+        
+        {/* Logo Section */}
+        <div className="p-6 border-b border-[var(--project-border)]">
         <div className="flex items-center space-x-3 space-x-reverse">
           <div className="bg-[var(--project-primary)]/10 w-10 h-10 rounded-full flex items-center justify-center">
             <Languages className="w-5 h-5 text-[var(--project-primary)]" />
@@ -123,5 +158,6 @@ export default function Sidebar() {
         </Button>
       </div>
     </div>
+    </>
   );
 }

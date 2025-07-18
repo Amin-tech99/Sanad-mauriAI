@@ -17,9 +17,9 @@ export default function Dashboard() {
     return (
       <div className="flex h-screen">
         <Sidebar />
-        <div className="flex-1 mr-64">
+        <div className="flex-1 lg:mr-64">
           <Header title="غير مخول" />
-          <main className="p-6">
+          <main className="p-4 lg:p-6">
             <div className="text-center">
               <AlertTriangle className="w-16 h-16 text-[var(--project-error)] mx-auto mb-4" />
               <h2 className="text-xl font-bold arabic-text">غير مخول للوصول</h2>
@@ -36,9 +36,9 @@ export default function Dashboard() {
   return (
     <div className="flex h-screen">
       <Sidebar />
-      <div className="flex-1 mr-64">
-        <Header title="لوحة التحكم الرئيسية" />
-        <main className="p-6">
+      <div className="flex-1 lg:mr-64">
+        <Header title="لوحة التحكم" />
+        <main className="p-4 lg:p-6 overflow-y-auto">
           {/* KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card>

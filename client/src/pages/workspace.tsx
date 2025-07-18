@@ -237,13 +237,13 @@ export default function Workspace() {
   return (
     <div className="flex h-screen">
       <Sidebar />
-      <div className="flex-1 mr-64">
-        <Header title="مساحة العمل - ترجمة الفقرات" />
-        <main className="p-6">
+      <div className="flex-1 lg:mr-64">
+        <Header title="مساحة العمل" />
+        <main className="p-4 lg:p-6 overflow-y-auto max-h-[calc(100vh-64px)]">
           {/* Task Header */}
           <Card className="mb-6">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
+            <CardContent className="p-4 lg:p-6">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
                 <div>
                   <h2 className="text-xl font-bold text-[var(--project-text-primary)] arabic-text">
                     ترجمة النص - المهمة #{currentItem.id}
@@ -290,7 +290,7 @@ export default function Workspace() {
           </Card>
 
           {/* Translation Workspace */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mb-4 lg:mb-6">
             {/* Source Text Panel */}
             <Card>
               <CardHeader className="bg-gray-50 border-b">
@@ -327,39 +327,44 @@ export default function Workspace() {
           </div>
 
           {/* Action Bar */}
-          <Card className="mb-6">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4 space-x-reverse">
-                  <Button
-                    onClick={handlePreviousItem}
-                    disabled={currentItemIndex === 0}
-                    variant="outline"
-                    className="arabic-text"
-                  >
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                    المهمة السابقة
-                  </Button>
-                  <span className="text-[var(--project-text-secondary)] text-sm arabic-text">
-                    مهمة {currentItemIndex + 1} من {workItems.length}
-                  </span>
-                  <Button
-                    onClick={handleNextItem}
-                    disabled={currentItemIndex === workItems.length - 1}
-                    variant="outline"
-                    className="arabic-text"
-                  >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    المهمة التالية
-                  </Button>
+          <Card className="mb-4 lg:mb-6">
+            <CardContent className="p-4 lg:p-6">
+              <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+                <div className="flex flex-col lg:flex-row items-center gap-2 lg:gap-4 lg:space-x-4 lg:space-x-reverse">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={handlePreviousItem}
+                      disabled={currentItemIndex === 0}
+                      variant="outline"
+                      size="sm"
+                      className="arabic-text"
+                    >
+                      <ArrowRight className="w-4 h-4 ml-1 lg:ml-2" />
+                      <span className="hidden sm:inline">المهمة السابقة</span>
+                    </Button>
+                    <span className="text-[var(--project-text-secondary)] text-xs lg:text-sm arabic-text px-2">
+                      {currentItemIndex + 1} / {workItems.length}
+                    </span>
+                    <Button
+                      onClick={handleNextItem}
+                      disabled={currentItemIndex === workItems.length - 1}
+                      variant="outline"
+                      size="sm"
+                      className="arabic-text"
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-1 lg:mr-2" />
+                      <span className="hidden sm:inline">المهمة التالية</span>
+                    </Button>
+                  </div>
                 </div>
 
-                <div className="flex items-center space-x-4 space-x-reverse">
+                <div className="flex flex-col lg:flex-row items-center gap-2 lg:gap-4 lg:space-x-4 lg:space-x-reverse">
                   <Button
                     onClick={handleSaveDraft}
                     disabled={!translation.trim() || updateMutation.isPending}
                     variant="outline"
-                    className="arabic-text"
+                    size="sm"
+                    className="arabic-text w-full lg:w-auto"
                   >
                     <Save className="w-4 h-4 ml-2" />
                     حفظ مسودة
@@ -367,7 +372,8 @@ export default function Workspace() {
                   <Button
                     onClick={handleSubmitForQA}
                     disabled={!translation.trim() || submitMutation.isPending}
-                    className="btn-primary arabic-text"
+                    size="sm"
+                    className="btn-primary arabic-text w-full lg:w-auto"
                   >
                     <Send className="w-4 h-4 ml-2" />
                     إرسال للمراجعة

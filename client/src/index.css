@@ -151,6 +151,20 @@
   .ltr-container {
     direction: ltr;
   }
+  
+  /* Mobile-first responsive utilities */
+  @media (max-width: 1024px) {
+    .workspace-panel {
+      min-height: 300px;
+      max-height: 400px;
+    }
+    
+    .paragraph-textarea {
+      min-height: 300px;
+      max-height: 400px;
+      font-size: 1rem;
+    }
+  }
 
   /* Scrollbar styling for Arabic text areas */
   .arabic-scroll {

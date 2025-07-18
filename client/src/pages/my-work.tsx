@@ -152,9 +152,9 @@ export default function MyWork() {
   return (
     <div className="flex h-screen">
       <Sidebar />
-      <div className="flex-1 mr-64">
+      <div className="flex-1 lg:mr-64">
         <Header title="قائمة مهامي" />
-        <main className="p-6">
+        <main className="p-4 lg:p-6 overflow-y-auto">
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-[var(--project-text-primary)] arabic-text">
               قائمة مهامي
