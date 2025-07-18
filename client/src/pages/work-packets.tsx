@@ -264,6 +264,14 @@ export default function WorkPackets() {
                     <h3 className="text-lg font-semibold text-[var(--project-text-primary)] mb-6 arabic-text">
                       الخطوة 2: اختيار نموذج التعليمات
                     </h3>
+                    
+                    {!selectedTemplate && (
+                      <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <p className="text-sm text-amber-800 arabic-text">
+                          <strong>مطلوب:</strong> يجب اختيار نموذج التعليمات للمتابعة
+                        </p>
+                      </div>
+                    )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                       {templates.map((template) => (
@@ -277,9 +285,14 @@ export default function WorkPackets() {
                           <CardHeader>
                             <div className="flex items-center justify-between">
                               <CardTitle className="text-base arabic-text">{template.name}</CardTitle>
-                              <Badge className="bg-[var(--project-primary)]/20 text-[var(--project-primary)] arabic-text">
-                                {template.taskType === "paragraph" ? "ترجمة الفقرات" : "ترجمة الجمل"}
-                              </Badge>
+                              <div className="flex items-center gap-2">
+                                {selectedTemplate === template.id && (
+                                  <CheckCircle className="w-5 h-5 text-[var(--project-primary)]" />
+                                )}
+                                <Badge className="bg-[var(--project-primary)]/20 text-[var(--project-primary)] arabic-text">
+                                  {template.taskType === "paragraph" ? "ترجمة الفقرات" : "ترجمة الجمل"}
+                                </Badge>
+                              </div>
                             </div>
                           </CardHeader>
                           <CardContent>
@@ -305,7 +318,7 @@ export default function WorkPackets() {
                     {/* Style Tag Selection */}
                     <div className="mb-6">
                       <label className="block text-sm font-medium text-[var(--project-text-primary)] mb-2 arabic-text">
-                        اختر أسلوب الترجمة (اختياري)
+                        اختر أسلوب الترجمة <span className="text-[var(--project-text-secondary)]">(اختياري)</span>
                       </label>
                       <Select value={selectedStyleTag?.toString()} onValueChange={(value) => setSelectedStyleTag(parseInt(value))}>
                         <SelectTrigger className="text-right" dir="rtl">
