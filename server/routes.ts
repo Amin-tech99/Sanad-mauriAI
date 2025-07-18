@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import multer from "multer";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { 
@@ -12,6 +13,9 @@ import {
   insertContextualLexiconSchema
 } from "@shared/schema";
 import { z } from "zod";
+
+// Configure multer for file uploads
+const upload = multer({ storage: multer.memoryStorage() });
 
 function requireAuth(req: any, res: any, next: any) {
   if (!req.isAuthenticated() || !req.user) {
@@ -651,6 +655,111 @@ export function registerRoutes(app: Express): Server {
       }
       
       res.json({ isEnabled: feature.isEnabled });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Backup export endpoint
+  app.get("/api/backup/export", requireAuth, requireRole(["admin"]), async (req, res, next) => {
+    try {
+      const backup = {
+        metadata: {
+          version: "1.0",
+          exportDate: new Date().toISOString(),
+          platformName: "Project Sanad",
+        },
+        data: {
+          approvedTerms: await storage.getApprovedTerms({}),
+          styleTags: await storage.getStyleTags(),
+          contextualLexicon: await storage.getContextualLexicon(),
+          wordSuggestions: await storage.getWordSuggestions(),
+        },
+      };
+
+      res.setHeader("Content-Type", "application/json");
+      res.setHeader("Content-Disposition", `attachment; filename="sanad-backup-${new Date().toISOString().split('T')[0]}.json"`);
+      res.json(backup);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Backup import endpoint
+  app.post("/api/backup/import", requireAuth, requireRole(["admin"]), upload.single("backup"), async (req, res, next) => {
+    try {
+      if (!req.file) {
+        return res.status(400).send("No backup file provided");
+      }
+
+      const backupData = JSON.parse(req.file.buffer.toString());
+      
+      if (!backupData.data || !backupData.metadata) {
+        return res.status(400).send("Invalid backup file format");
+      }
+
+      const imported = {
+        approvedTerms: 0,
+        styleTags: 0,
+        contextualLexicon: 0,
+        wordSuggestions: 0,
+      };
+
+      // Import approved terms
+      if (backupData.data.approvedTerms) {
+        for (const term of backupData.data.approvedTerms) {
+          try {
+            await storage.createApprovedTerm({
+              arabicTerm: term.arabicTerm,
+              hassaniyaTerm: term.hassaniyaTerm,
+              context: term.context,
+              category: term.category,
+            });
+            imported.approvedTerms++;
+          } catch (error) {
+            // Skip duplicates
+          }
+        }
+      }
+
+      // Import style tags
+      if (backupData.data.styleTags) {
+        for (const tag of backupData.data.styleTags) {
+          try {
+            await storage.createStyleTag({
+              name: tag.name,
+              description: tag.description,
+              color: tag.color,
+            });
+            imported.styleTags++;
+          } catch (error) {
+            // Skip duplicates
+          }
+        }
+      }
+
+      // Import contextual lexicon
+      if (backupData.data.contextualLexicon) {
+        for (const entry of backupData.data.contextualLexicon) {
+          try {
+            await storage.createContextualLexicon({
+              styleTagId: entry.styleTagId,
+              arabicWord: entry.arabicWord,
+              hassaniyaEquivalents: entry.hassaniyaEquivalents,
+              usageExample: entry.usageExample,
+              frequency: entry.frequency,
+            });
+            imported.contextualLexicon++;
+          } catch (error) {
+            // Skip duplicates
+          }
+        }
+      }
+
+      res.json({
+        message: "Backup imported successfully",
+        imported,
+      });
     } catch (error) {
       next(error);
     }

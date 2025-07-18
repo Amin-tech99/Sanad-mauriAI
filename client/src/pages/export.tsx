@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,11 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/use-auth";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
 import { useToast } from "@/hooks/use-toast";
-import { Download, FileText, Database, AlertTriangle, Loader2 } from "lucide-react";
+import { useFeature } from "@/hooks/use-feature";
+import { FeatureGate } from "@/components/feature-gate";
+import { Download, FileText, Database, AlertTriangle, Loader2, Upload, Shield } from "lucide-react";
 import type { User } from "@shared/schema";
 
 interface ExportFilters {
@@ -24,6 +26,7 @@ interface ExportFilters {
 export default function ExportPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [filters, setFilters] = useState<ExportFilters>({
     format: "jsonl",
   });
@@ -84,6 +87,85 @@ export default function ExportPage() {
     },
   });
 
+  const exportBackupMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/backup/export", {
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("فشل في تصدير النسخة الاحتياطية");
+      }
+
+      const blob = await response.blob();
+      const filename = `sanad-backup-${new Date().toISOString().split('T')[0]}.json`;
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      return { success: true };
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم التصدير بنجاح",
+        description: "تم تحميل النسخة الاحتياطية لمعرفة المنصة",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "خطأ في التصدير",
+        description: error.message || "فشل في تصدير النسخة الاحتياطية",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const importBackupMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("backup", file);
+
+      const response = await fetch("/api/backup/import", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error || "فشل في استعادة النسخة الاحتياطية");
+      }
+
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "تم الاستعادة بنجاح",
+        description: `تم استيراد: ${data.imported.approvedTerms} مصطلحات، ${data.imported.styleTags} تصنيفات، ${data.imported.contextualLexicon} معجم سياقي، ${data.imported.wordSuggestions} اقتراحات`,
+      });
+      
+      // Refresh queries
+      queryClient.invalidateQueries({ queryKey: ["/api/approved-terms"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/style-tags"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/contextual-lexicon"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/word-suggestions"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "خطأ في الاستعادة",
+        description: error.message || "فشل في استعادة النسخة الاحتياطية",
+        variant: "destructive",
+      });
+    },
+  });
+
   const translators = users.filter(u => u.role === "translator");
 
   const handleExport = () => {
@@ -95,6 +177,15 @@ export default function ExportPage() {
       ...prev,
       [key]: value || undefined,
     }));
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      importBackupMutation.mutate(file);
+    }
+    // Reset the input
+    event.target.value = "";
   };
 
   if (user?.role !== "admin") {
@@ -301,6 +392,109 @@ export default function ExportPage() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Platform Knowledge Backup Section */}
+            <FeatureGate featureKey="platform_backup">
+              <div className="mt-8">
+                <div className="mb-4">
+                  <h3 className="text-xl font-bold text-[var(--project-text-primary)] arabic-text">
+                    نسخ احتياطي لمعرفة المنصة
+                  </h3>
+                  <p className="text-[var(--project-text-secondary)] arabic-text">
+                    احتفظ بنسخة احتياطية من البيانات التي تعلمتها المنصة من المترجمين
+                  </p>
+                </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Export Platform Knowledge */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="arabic-text flex items-center gap-2">
+                      <Shield className="w-5 h-5 text-[var(--project-primary)]" />
+                      تصدير معرفة المنصة
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="p-4 bg-[var(--project-primary)]/5 rounded-lg">
+                      <h4 className="font-medium text-[var(--project-text-primary)] mb-2 arabic-text">
+                        يشمل:
+                      </h4>
+                      <ul className="text-sm text-[var(--project-text-secondary)] space-y-1 arabic-text">
+                        <li>• المصطلحات المعتمدة</li>
+                        <li>• تصنيفات الأسلوب</li>
+                        <li>• المعجم السياقي</li>
+                        <li>• اقتراحات الكلمات من المترجمين</li>
+                      </ul>
+                    </div>
+
+                    <Button
+                      onClick={() => exportBackupMutation.mutate()}
+                      disabled={exportBackupMutation.isPending}
+                      className="w-full btn-primary arabic-text"
+                    >
+                      {exportBackupMutation.isPending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                          جاري التصدير...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="w-4 h-4 ml-2" />
+                          تحميل النسخة الاحتياطية
+                        </>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Import Platform Knowledge */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="arabic-text flex items-center gap-2">
+                      <Upload className="w-5 h-5 text-[var(--project-primary)]" />
+                      استعادة معرفة المنصة
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="p-4 bg-amber-50 rounded-lg">
+                      <h4 className="font-medium text-amber-900 mb-2 arabic-text">
+                        تنبيه:
+                      </h4>
+                      <p className="text-sm text-amber-800 arabic-text">
+                        سيتم دمج البيانات المستوردة مع البيانات الموجودة. لن يتم حذف أي بيانات حالية.
+                      </p>
+                    </div>
+
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".json"
+                      className="hidden"
+                      onChange={handleFileUpload}
+                    />
+
+                    <Button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={importBackupMutation.isPending}
+                      className="w-full btn-secondary arabic-text"
+                    >
+                      {importBackupMutation.isPending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 ml-2 animate-spin" />
+                          جاري الاستعادة...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4 ml-2" />
+                          اختر ملف النسخة الاحتياطية
+                        </>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+              </div>
+            </FeatureGate>
           </div>
         </main>
       </div>
