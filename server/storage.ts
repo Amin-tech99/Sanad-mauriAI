@@ -60,6 +60,7 @@ export interface IStorage {
   createTemplate(template: InsertTemplate): Promise<InstructionTemplate>;
   getAllTemplates(): Promise<InstructionTemplate[]>;
   getTemplateById(id: number): Promise<InstructionTemplate | undefined>;
+  deleteTemplate(id: number, cascade?: boolean): Promise<void>;
   
   createWorkPacket(packet: InsertWorkPacket): Promise<WorkPacket>;
   getAllWorkPackets(): Promise<WorkPacket[]>;
@@ -217,6 +218,30 @@ export class DatabaseStorage implements IStorage {
   async getTemplateById(id: number): Promise<InstructionTemplate | undefined> {
     const [template] = await db.select().from(instructionTemplates).where(eq(instructionTemplates.id, id));
     return template || undefined;
+  }
+
+  async deleteTemplate(id: number, cascade: boolean = false): Promise<void> {
+    // First check if there are any work packets using this template
+    const dependentPackets = await db.select()
+      .from(workPackets)
+      .where(eq(workPackets.templateId, id));
+    
+    if (dependentPackets.length > 0 && !cascade) {
+      throw new Error('Cannot delete template: There are work packets using this template');
+    }
+    
+    if (cascade && dependentPackets.length > 0) {
+      // Delete all work items from dependent packets
+      for (const packet of dependentPackets) {
+        await db.delete(workItems).where(eq(workItems.packetId, packet.id));
+        await db.delete(workItemAssignments).where(eq(workItemAssignments.packetId, packet.id));
+      }
+      
+      // Delete all work packets
+      await db.delete(workPackets).where(eq(workPackets.templateId, id));
+    }
+    
+    await db.delete(instructionTemplates).where(eq(instructionTemplates.id, id));
   }
 
   async createWorkPacket(packet: InsertWorkPacket): Promise<WorkPacket> {

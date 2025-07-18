@@ -117,6 +117,28 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.delete("/api/templates/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const cascade = req.query.cascade === 'true';
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid template ID" });
+      }
+      
+      await storage.deleteTemplate(id, cascade);
+      res.status(200).json({ message: "Template deleted successfully" });
+    } catch (error: any) {
+      if (error.message?.includes('work packets')) {
+        return res.status(400).json({ 
+          error: "لا يمكن حذف هذا النموذج لأنه مرتبط بحزم عمل. يجب حذف حزم العمل أولاً.",
+          hasWorkPackets: true
+        });
+      }
+      res.status(500).json({ error: "فشل حذف النموذج" });
+    }
+  });
+
   // Work packets routes
   app.get("/api/work-packets", requireAuth, requireRole(["admin"]), async (req, res) => {
     try {

@@ -1,21 +1,68 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
 import TemplateModal from "@/components/modals/template-modal";
-import { Plus, Edit, Copy, FileText, AlertTriangle } from "lucide-react";
+import { Plus, Edit, Copy, FileText, AlertTriangle, Trash } from "lucide-react";
 import type { InstructionTemplate } from "@shared/schema";
 
 export default function Templates() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [showTemplateModal, setShowTemplateModal] = useState(false);
 
   const { data: templates = [], isLoading } = useQuery<InstructionTemplate[]>({
     queryKey: ["/api/templates"],
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async ({ id, cascade = false }: { id: number; cascade?: boolean }) => {
+      const url = cascade ? `/api/templates/${id}?cascade=true` : `/api/templates/${id}`;
+      const response = await apiRequest("DELETE", url);
+      return response;
+    },
+    onSuccess: () => {
+      toast({
+        title: "تم الحذف",
+        description: "تم حذف النموذج بنجاح",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
+    },
+    onError: async (error: any, variables) => {
+      // Extract error data from the response
+      let errorData;
+      try {
+        const response = error.response || error;
+        errorData = response.data || (await response.json?.()) || {};
+      } catch {
+        errorData = {};
+      }
+      
+      if (errorData?.hasWorkPackets) {
+        // Show confirmation dialog for cascade delete
+        const confirmCascade = confirm(
+          "هذا النموذج مرتبط بحزم عمل. هل تريد حذف النموذج مع جميع حزم العمل والعناصر المرتبطة به؟\n\nتحذير: هذا الإجراء لا يمكن التراجع عنه!"
+        );
+        
+        if (confirmCascade && variables?.id) {
+          // Retry with cascade option using the original variables
+          deleteMutation.mutate({ id: variables.id, cascade: true });
+        }
+      } else {
+        const errorMessage = errorData?.error || "حدث خطأ أثناء حذف النموذج";
+        toast({
+          title: "خطأ",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
+    },
   });
 
   if (user?.role !== "admin") {
@@ -109,11 +156,32 @@ export default function Templates() {
                     </div>
                     
                     <div className="flex space-x-2 space-x-reverse">
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        title="تعديل"
+                      >
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        title="نسخ"
+                      >
                         <Copy className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="text-[var(--project-error)] hover:bg-red-50"
+                        onClick={() => {
+                          if (confirm('هل أنت متأكد من حذف هذا النموذج؟')) {
+                            deleteMutation.mutate({ id: template.id });
+                          }
+                        }}
+                        title="حذف"
+                      >
+                        <Trash className="w-4 h-4" />
                       </Button>
                     </div>
                   </CardContent>
