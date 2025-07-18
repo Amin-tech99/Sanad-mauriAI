@@ -28,8 +28,8 @@ function Router() {
       <ProtectedRoute path="/users" component={Users} />
       <ProtectedRoute path="/export" component={ExportPage} />
       <ProtectedRoute path="/my-work" component={MyWork} />
-      <ProtectedRoute path="/workspace" component={Workspace} />
-      <ProtectedRoute path="/workspace/:id" component={Workspace} />
+      <ProtectedRoute path="/workspace" component={() => <Workspace />} />
+      <ProtectedRoute path="/workspace/:id" component={() => <Workspace />} />
       <ProtectedRoute path="/qa-queue" component={QAQueue} />
       <ProtectedRoute path="/qa-review" component={QAReview} />
       <ProtectedRoute path="/qa-review/:id" component={QAReview} />
