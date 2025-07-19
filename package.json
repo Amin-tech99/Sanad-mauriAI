@@ -85,11 +85,11 @@
     "esbuild": "^0.25.0",
     "typescript": "5.6.3",
     "drizzle-kit": "^0.30.4",
-    "@vitejs/plugin-react": "^4.3.2"
+    "@vitejs/plugin-react": "^4.3.2",
+    "@replit/vite-plugin-cartographer": "^0.2.7",
+    "@replit/vite-plugin-runtime-error-modal": "^0.0.3"
   },
   "devDependencies": {
-    "@replit/vite-plugin-cartographer": "^0.2.7",
-    "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
     "@tailwindcss/typography": "^0.5.15",
     "@tailwindcss/vite": "^4.1.3",
     "@types/connect-pg-simple": "^7.0.3",
