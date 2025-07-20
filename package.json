@@ -55,7 +55,7 @@
     "cmdk": "^1.1.1",
     "connect-pg-simple": "^10.0.0",
     "date-fns": "^3.6.0",
-    "drizzle-kit": "^0.30.4",
+    "drizzle-kit": "^0.31.4",
     "drizzle-orm": "^0.39.1",
     "drizzle-zod": "^0.7.0",
     "embla-carousel-react": "^8.6.0",
@@ -82,12 +82,15 @@
     "tw-animate-css": "^1.2.5",
     "typescript": "5.6.3",
     "vaul": "^1.1.2",
-    "vite": "^5.4.19",
+    "vite": "^7.0.5",
     "wouter": "^3.3.5",
     "ws": "^8.18.0",
     "zod": "^3.24.2",
     "zod-validation-error": "^3.4.0",
-    "zustand": "^5.0.6"
+    "zustand": "^5.0.6",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.17"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.15",
@@ -101,9 +104,6 @@
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
     "@types/ws": "^8.5.13",
-    "autoprefixer": "^10.4.21",
-    "postcss": "^8.4.47",
-    "tailwindcss": "^3.4.17",
     "tsx": "^4.19.1"
   },
   "optionalDependencies": {
