@@ -66,7 +66,7 @@ export async function createServer() {
 }
 
 // For local development
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   (async () => {
     const app = await createServer();
     
