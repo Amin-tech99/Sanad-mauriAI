@@ -127,13 +127,10 @@ export function registerRoutes(app: Express): Server {
   // Templates routes
   app.get("/api/templates", requireAuth, async (req, res) => {
     try {
-      console.log("🔍 Fetching templates...");
       const templates = await storage.getAllTemplates();
-      console.log("📋 Templates found:", templates.length);
-      console.log("📋 Templates data:", JSON.stringify(templates, null, 2));
       res.json(templates);
     } catch (error) {
-      console.error("❌ Error fetching templates:", error);
+      console.error("Error fetching templates:", error);
       res.status(500).json({ error: "Failed to fetch templates" });
     }
   });

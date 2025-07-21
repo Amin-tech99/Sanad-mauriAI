@@ -257,12 +257,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllTemplates(): Promise<InstructionTemplate[]> {
-    console.log("🔍 Storage: Querying templates from database...");
     const templates = await db.select().from(instructionTemplates)
       .where(eq(instructionTemplates.isActive, true))
       .orderBy(desc(instructionTemplates.createdAt));
-    console.log("📋 Storage: Found templates:", templates.length);
-    console.log("📋 Storage: Template details:", JSON.stringify(templates, null, 2));
     return templates;
   }
 
