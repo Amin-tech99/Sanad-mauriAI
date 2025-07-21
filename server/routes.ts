@@ -1,5 +1,8 @@
 import type { Express } from "express";
+import path from "path";
 import { createServer, type Server } from "http";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import multer from "multer";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
@@ -34,15 +37,14 @@ function requireRole(roles: string[]) {
 }
 
 export function registerRoutes(app: Express): Server {
-  // Health check endpoint for Render
-  app.get("/", (req, res) => {
-    res.json({ 
-      status: "ok", 
-      message: "Sanad MauriAI Translation Platform",
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || "development"
-    });
-  });
+// Serve the main HTML page
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
+
+  // Commented out - Vite development server handles this in development mode
+  // app.get("/", (req, res) => {
+  //   res.sendFile("index.html", { root: path.join(__dirname, "../public") });
+  // });
 
   app.get("/health", (req, res) => {
     res.json({ 
@@ -125,9 +127,13 @@ export function registerRoutes(app: Express): Server {
   // Templates routes
   app.get("/api/templates", requireAuth, async (req, res) => {
     try {
+      console.log("🔍 Fetching templates...");
       const templates = await storage.getAllTemplates();
+      console.log("📋 Templates found:", templates.length);
+      console.log("📋 Templates data:", JSON.stringify(templates, null, 2));
       res.json(templates);
     } catch (error) {
+      console.error("❌ Error fetching templates:", error);
       res.status(500).json({ error: "Failed to fetch templates" });
     }
   });
