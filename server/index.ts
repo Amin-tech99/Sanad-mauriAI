@@ -4,6 +4,9 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { exec } from "child_process";
 import { promisify } from "util";
+import { db } from "./db";
+import { sql } from "drizzle-orm";
+import { storage } from "./storage";
 
 const execAsync = promisify(exec);
 
@@ -18,6 +21,37 @@ async function runMigrations() {
       // Don't exit the process, let the app start anyway
       // The database might already be up to date
     }
+  }
+}
+
+async function initializePlatformFeatures() {
+  try {
+    console.log('Initializing platform features...');
+    
+    // Create the platform_features table if it doesn't exist
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS platform_features (
+        id SERIAL PRIMARY KEY,
+        feature_key TEXT NOT NULL UNIQUE,
+        feature_name TEXT NOT NULL,
+        description TEXT,
+        category TEXT NOT NULL,
+        is_enabled BOOLEAN NOT NULL DEFAULT true,
+        dependencies TEXT[],
+        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        updated_by INTEGER REFERENCES users(id)
+      )
+    `);
+    
+    console.log("Platform features table created or already exists");
+    
+    // Initialize default features (16 services)
+    await storage.initializePlatformFeatures();
+    console.log("Platform features initialized successfully - 16 services available");
+    
+  } catch (error) {
+    console.error("Error initializing platform features:", error);
+    // Don't exit the process, let the app start anyway
   }
 }
 
@@ -88,6 +122,9 @@ export async function createServer() {
     // Run database migrations in production
     await runMigrations();
     
+    // Initialize platform features (16 services)
+    await initializePlatformFeatures();
+    
     const app = await createServer();
     
     const port = parseInt(process.env.PORT || '5000', 10);
@@ -95,6 +132,7 @@ export async function createServer() {
       log(`serving on port ${port}`);
       console.log(`Server running at http://localhost:${port}`);
       console.log(`API endpoints available at http://localhost:${port}/api/*`);
+      console.log(`Platform Control available at http://localhost:${port}/platform-control`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
