@@ -39,10 +39,10 @@ import {
 import { db } from "./db";
 import { eq, and, desc, count, sql } from "drizzle-orm";
 import session from "express-session";
-import connectPg from "connect-pg-simple";
-import { pool } from "./db";
+import MemoryStore from "memorystore";
 
-const PostgresSessionStore = connectPg(session);
+// Use memory store for serverless environment (Vercel)
+const MemorySessionStore = MemoryStore(session);
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -153,9 +153,8 @@ export class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
 
   constructor() {
-    this.sessionStore = new PostgresSessionStore({ 
-      pool, 
-      createTableIfMissing: true 
+    this.sessionStore = new MemorySessionStore({ 
+      checkPeriod: 86400000 // prune expired entries every 24h
     });
   }
 
