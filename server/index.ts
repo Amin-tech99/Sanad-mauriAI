@@ -2,6 +2,24 @@ import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { exec } from "child_process";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
+
+async function runMigrations() {
+  if (process.env.NODE_ENV === 'production') {
+    try {
+      console.log('Running database migrations...');
+      await execAsync('npm run db:push');
+      console.log('Database migrations completed successfully');
+    } catch (error) {
+      console.error('Database migration failed:', error);
+      // Don't exit the process, let the app start anyway
+      // The database might already be up to date
+    }
+  }
+}
 
 export async function createServer() {
   const app = express();
@@ -67,6 +85,9 @@ export async function createServer() {
 
 (async () => {
   try {
+    // Run database migrations in production
+    await runMigrations();
+    
     const app = await createServer();
     
     const port = parseInt(process.env.PORT || '5000', 10);
