@@ -194,9 +194,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createSource(source: InsertSource): Promise<Source> {
+    // Handle tags property to ensure it's a proper string array
+    const sourceData: any = { ...source };
+    if (source.tags !== undefined) {
+      sourceData.tags = Array.isArray(source.tags) ? source.tags : [];
+    }
+    
     const [newSource] = await db
       .insert(sources)
-      .values(source)
+      .values(sourceData)
       .returning();
     return newSource;
   }
@@ -215,9 +221,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateSource(id: number, data: Partial<InsertSource>): Promise<Source> {
+    // Handle tags property separately to avoid type issues
+    const updateData: any = { ...data };
+    if (data.tags !== undefined) {
+      updateData.tags = Array.isArray(data.tags) ? data.tags : [];
+    }
+    
     const [updatedSource] = await db
       .update(sources)
-      .set(data)
+      .set(updateData)
       .where(eq(sources.id, id))
       .returning();
     return updatedSource;
@@ -475,23 +487,26 @@ export class DatabaseStorage implements IStorage {
         totalCompleted: sql<number>`COUNT(*)`,
         approved: sql<number>`COUNT(CASE WHEN ${workItems.status} = 'approved' THEN 1 END)`,
         avgTime: sql<number>`AVG(CASE 
-          WHEN ${workItems.completedAt} IS NOT NULL AND ${workItems.startedAt} IS NOT NULL 
-          THEN EXTRACT(EPOCH FROM (${workItems.completedAt} - ${workItems.startedAt})) / 3600 
+          WHEN ${workItems.reviewedAt} IS NOT NULL AND ${workItems.submittedAt} IS NOT NULL 
+          THEN EXTRACT(EPOCH FROM (${workItems.reviewedAt} - ${workItems.submittedAt})) / 3600 
           END)`,
       })
       .from(workItemAssignments)
-      .innerJoin(workItems, eq(workItemAssignments.workItemId, workItems.id))
+      .innerJoin(workPackets, eq(workItemAssignments.packetId, workPackets.id))
+      .innerJoin(workItems, eq(workPackets.id, workItems.packetId))
       .innerJoin(users, eq(workItemAssignments.translatorId, users.id))
-      .where(sql`${workItems.completedAt} >= ${periodStart}`)
+      .where(sql`${workItems.reviewedAt} >= ${periodStart}`)
       .groupBy(workItemAssignments.translatorId, users.username);
 
-    const performanceWithRates = translatorPerformance.map(p => ({
-      translatorId: p.translatorId,
-      username: p.username,
-      totalCompleted: p.totalCompleted,
-      approvalRate: p.totalCompleted > 0 ? Number(((p.approved / p.totalCompleted) * 100).toFixed(1)) : 0,
-      avgTimePerItem: Number((p.avgTime || 0).toFixed(2)),
-    }));
+    const performanceWithRates = translatorPerformance
+      .filter(p => p.translatorId !== null)
+      .map(p => ({
+        translatorId: p.translatorId as number,
+        username: p.username,
+        totalCompleted: p.totalCompleted,
+        approvalRate: p.totalCompleted > 0 ? Number(((p.approved / p.totalCompleted) * 100).toFixed(1)) : 0,
+        avgTimePerItem: Number((p.avgTime || 0).toFixed(2)),
+      }));
 
     // Quality metrics
     const [overallStats] = await db
@@ -538,7 +553,7 @@ export class DatabaseStorage implements IStorage {
       })
       .from(sources)
       .innerJoin(workPackets, eq(sources.id, workPackets.sourceId))
-      .innerJoin(workItems, eq(workPackets.id, workItems.workPacketId))
+      .innerJoin(workItems, eq(workPackets.id, workItems.packetId))
       .where(sql`${workItems.reviewedAt} >= ${periodStart}`)
       .groupBy(sources.tags);
 
@@ -551,7 +566,7 @@ export class DatabaseStorage implements IStorage {
       })
       .from(instructionTemplates)
       .innerJoin(workPackets, eq(instructionTemplates.id, workPackets.templateId))
-      .innerJoin(workItems, eq(workPackets.id, workItems.workPacketId))
+      .innerJoin(workItems, eq(workPackets.id, workItems.packetId))
       .where(sql`${workItems.reviewedAt} >= ${periodStart}`)
       .groupBy(instructionTemplates.id, instructionTemplates.name);
 
@@ -570,7 +585,7 @@ export class DatabaseStorage implements IStorage {
       })
       .from(styleTags)
       .innerJoin(workPackets, eq(styleTags.id, workPackets.styleTagId))
-      .innerJoin(workItems, eq(workPackets.id, workItems.workPacketId))
+      .innerJoin(workItems, eq(workPackets.id, workItems.packetId))
       .where(sql`${workItems.reviewedAt} >= ${periodStart}`)
       .groupBy(styleTags.id, styleTags.name);
 
@@ -589,7 +604,7 @@ export class DatabaseStorage implements IStorage {
       },
       contentAnalytics: {
         sourceTypes: sourceTypes.map(s => ({
-          type: s.type || 'غير محدد',
+          type: Array.isArray(s.type) ? s.type.join(', ') : (s.type || 'غير محدد'),
           count: s.count,
           avgQuality: Number(s.avgQuality.toFixed(1)),
         })),

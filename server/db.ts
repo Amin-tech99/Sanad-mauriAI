@@ -1,6 +1,6 @@
 import 'dotenv/config';
-import { neon } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
 import * as schema from "@shared/schema";
 
 if (!process.env.DATABASE_URL) {
@@ -9,6 +9,10 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Use Neon's serverless driver for better Vercel compatibility
-const sql = neon(process.env.DATABASE_URL);
-export const db = drizzle(sql, { schema });
+// Configure postgres client for production (Render) and development
+const client = postgres(process.env.DATABASE_URL, {
+  ssl: process.env.NODE_ENV === 'production' ? 'require' : false,
+  max: 1, // Limit connections for free tier
+});
+
+export const db = drizzle(client, { schema });

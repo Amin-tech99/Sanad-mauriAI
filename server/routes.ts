@@ -280,7 +280,7 @@ export function registerRoutes(app: Express): Server {
       const enhancedItems = await Promise.all(workItems.map(async (item) => {
         const packet = await storage.getWorkPacketById(item.packetId);
         let styleTag = null;
-        if (packet?.styleTagId) {
+        if (packet && packet.styleTagId) {
           styleTag = await storage.getStyleTag(packet.styleTagId);
         }
         return {
@@ -707,7 +707,7 @@ export function registerRoutes(app: Express): Server {
   });
   
   // Platform Features routes
-  app.get("/api/platform-features", requireAuth, requireRole(["admin"]), async (req, res, next) => {
+  app.get("/api/platform-features", requireAuth, async (req, res, next) => {
     try {
       const features = await storage.getAllPlatformFeatures();
       res.json(features);
@@ -855,7 +855,7 @@ export function registerRoutes(app: Express): Server {
             await storage.createStyleTag({
               name: tag.name,
               description: tag.description,
-              color: tag.color,
+              guidelines: tag.guidelines || "",
             });
             imported.styleTags++;
           } catch (error) {
@@ -869,11 +869,7 @@ export function registerRoutes(app: Express): Server {
         for (const entry of backupData.data.contextualLexicon) {
           try {
             await storage.createContextualLexiconEntry({
-              styleTagId: entry.styleTagId,
-              arabicWord: entry.arabicWord,
-              hassaniyaEquivalents: entry.hassaniyaEquivalents,
-              usageExample: entry.usageExample,
-              frequency: entry.frequency,
+              baseWord: entry.baseWord,
             });
             imported.contextualLexicon++;
           } catch (error) {
