@@ -517,7 +517,7 @@ export function registerRoutes(app: Express): Server {
     }
   });
   
-  app.get("/api/approved-terms", requireAuth, requireRole(["admin"]), async (req, res, next) => {
+  app.get("/api/approved-terms", requireAuth, requireRole(["admin", "translator"]), async (req, res, next) => {
     try {
       const terms = await storage.getAllApprovedTerms();
       res.json(terms);
@@ -531,6 +531,20 @@ export function registerRoutes(app: Express): Server {
       const validatedData = insertApprovedTermSchema.parse(req.body);
       const term = await storage.createApprovedTerm(validatedData);
       res.status(201).json(term);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  app.delete("/api/approved-terms/:id", requireAuth, requireRole(["admin"]), async (req, res, next) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: "Invalid term ID" });
+      }
+      
+      await storage.deleteApprovedTerm(id);
+      res.status(200).json({ message: "Term deleted successfully" });
     } catch (error) {
       next(error);
     }
@@ -578,7 +592,7 @@ export function registerRoutes(app: Express): Server {
   });
   
   // Contextual Lexicon routes
-  app.get("/api/contextual-lexicon", requireAuth, requireRole(["admin"]), async (req, res, next) => {
+  app.get("/api/contextual-lexicon", requireAuth, requireRole(["admin", "translator"]), async (req, res, next) => {
     try {
       const lexicon = await storage.getContextualLexiconWithAlternatives();
       res.json(lexicon);

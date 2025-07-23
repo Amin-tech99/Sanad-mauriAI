@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
-import { Plus, AlertTriangle, Languages, TrendingUp } from "lucide-react";
+import { Plus, AlertTriangle, Languages, TrendingUp, Trash2 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -25,6 +25,8 @@ export default function ApprovedTerms() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [termToDelete, setTermToDelete] = useState<ApprovedTerm | null>(null);
   const [newTerm, setNewTerm] = useState({
     arabicTerm: "",
     hassaniyaTerm: "",
@@ -32,7 +34,8 @@ export default function ApprovedTerms() {
     category: "",
   });
 
-  if (user?.role !== "admin") {
+  // Allow access for admin and translator roles
+  if (user?.role !== "admin" && user?.role !== "translator") {
     return (
       <div className="flex h-screen">
         <Sidebar />
@@ -43,7 +46,7 @@ export default function ApprovedTerms() {
               <AlertTriangle className="w-16 h-16 text-[var(--project-error)] mx-auto mb-4" />
               <h2 className="text-xl font-bold arabic-text">غير مخول للوصول</h2>
               <p className="text-[var(--project-text-secondary)] arabic-text">
-                هذه الصفحة مخصصة للمديرين فقط
+                هذه الصفحة مخصصة للمديرين والمترجمين فقط
               </p>
             </div>
           </main>
@@ -54,7 +57,7 @@ export default function ApprovedTerms() {
 
   const { data: terms = [], isLoading } = useQuery<ApprovedTerm[]>({
     queryKey: ["/api/approved-terms"],
-    enabled: user?.role === "admin",
+    enabled: user?.role === "admin" || user?.role === "translator",
   });
 
   const createTermMutation = useMutation({
@@ -82,14 +85,37 @@ export default function ApprovedTerms() {
         description: error.message,
         variant: "destructive",
       });
+    }
+  });
+
+  const deleteTermMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/approved-terms/${id}`);
+      return res.json();
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/approved-terms"] });
+      setIsDeleteDialogOpen(false);
+      setTermToDelete(null);
+      toast({
+        title: "تم الحذف بنجاح",
+        description: "تم حذف المصطلح المعتمد بنجاح",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "خطأ في الحذف",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   });
 
   const handleAddTerm = () => {
     if (!newTerm.arabicTerm.trim() || !newTerm.hassaniyaTerm.trim()) {
       toast({
-        title: "خطأ",
-        description: "يرجى إدخال المصطلح بالعربية والحسانية",
+        title: "خطأ في البيانات",
+        description: "يرجى إدخال المصطلح العربي والحساني",
         variant: "destructive",
       });
       return;
@@ -106,15 +132,17 @@ export default function ApprovedTerms() {
           {/* Header Actions */}
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-[var(--project-text-primary)] arabic-text">
-              إدارة المصطلحات المعتمدة
+              {user?.role === "admin" ? "إدارة المصطلحات المعتمدة" : "المصطلحات المعتمدة"}
             </h2>
-            <Button
-              onClick={() => setIsAddDialogOpen(true)}
-              className="btn-primary arabic-text"
-            >
-              <Plus className="w-4 h-4 ml-2" />
-              إضافة مصطلح جديد
-            </Button>
+            {user?.role === "admin" && (
+              <Button
+                onClick={() => setIsAddDialogOpen(true)}
+                className="btn-primary arabic-text"
+              >
+                <Plus className="w-4 h-4 ml-2" />
+                إضافة مصطلح جديد
+              </Button>
+            )}
           </div>
 
           {/* Terms Table */}
@@ -152,6 +180,11 @@ export default function ApprovedTerms() {
                         <th className="text-right px-4 py-3 font-medium text-[var(--project-text-primary)] arabic-text">
                           الاستخدام
                         </th>
+                        {user?.role === "admin" && (
+                          <th className="text-center px-4 py-3 font-medium text-[var(--project-text-primary)] arabic-text">
+                            الإجراءات
+                          </th>
+                        )}
                       </tr>
                     </thead>
                     <tbody>
@@ -181,6 +214,21 @@ export default function ApprovedTerms() {
                               </span>
                             </div>
                           </td>
+                          {user?.role === "admin" && (
+                            <td className="px-4 py-3 text-center">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setTermToDelete(term);
+                                  setIsDeleteDialogOpen(true);
+                                }}
+                                className="text-red-600 hover:bg-red-50 hover:border-red-400 hover:text-red-700"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </td>
+                          )}
                         </tr>
                       ))}
                     </tbody>
@@ -277,6 +325,64 @@ export default function ApprovedTerms() {
             >
               <Languages className="w-4 h-4 ml-2" />
               إضافة المصطلح
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px] bg-white border-2 border-red-200 shadow-xl">
+          <DialogHeader>
+            <DialogTitle className="text-red-800 flex items-center gap-2 arabic-text">
+              <AlertTriangle className="h-5 w-5" />
+              تأكيد الحذف
+            </DialogTitle>
+            <DialogDescription className="text-red-600 arabic-text">
+              هل أنت متأكد من أنك تريد حذف هذا المصطلح المعتمد؟ لا يمكن التراجع عن هذا الإجراء.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {termToDelete && (
+            <div className="bg-red-50 p-4 rounded-lg border border-red-200 my-4">
+              <div className="space-y-2">
+                <div className="arabic-text">
+                  <span className="font-semibold text-red-800">المصطلح العربي: </span>
+                  <span className="text-red-700">{termToDelete.arabicTerm}</span>
+                </div>
+                <div className="arabic-text">
+                  <span className="font-semibold text-red-800">المصطلح الحساني: </span>
+                  <span className="text-red-700">{termToDelete.hassaniyaTerm}</span>
+                </div>
+                <div className="arabic-text">
+                  <span className="font-semibold text-red-800">الفئة: </span>
+                  <span className="text-red-700">{termToDelete.category || "-"}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleteDialogOpen(false);
+                setTermToDelete(null);
+              }}
+              className="border-gray-300 text-gray-700 hover:bg-gray-50 arabic-text"
+            >
+              إلغاء
+            </Button>
+            <Button
+              onClick={() => {
+                if (termToDelete) {
+                  deleteTermMutation.mutate(termToDelete.id);
+                }
+              }}
+              disabled={deleteTermMutation.isPending}
+              className="bg-red-600 hover:bg-red-700 text-white border-red-600 hover:border-red-700 transition-all duration-200 arabic-text"
+            >
+              {deleteTermMutation.isPending ? "جاري الحذف..." : "حذف"}
             </Button>
           </DialogFooter>
         </DialogContent>

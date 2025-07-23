@@ -121,6 +121,7 @@ export interface IStorage {
   incrementTermFrequency(id: number): Promise<void>;
   createApprovedTerm(term: InsertApprovedTerm): Promise<ApprovedTerm>;
   getAllApprovedTerms(): Promise<ApprovedTerm[]>;
+  deleteApprovedTerm(id: number): Promise<void>;
   
   // Style Tags Methods
   getStyleTags(): Promise<StyleTag[]>;
@@ -711,6 +712,10 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(approvedTerms)
       .orderBy(desc(approvedTerms.frequency));
+  }
+  
+  async deleteApprovedTerm(id: number): Promise<void> {
+    await db.delete(approvedTerms).where(eq(approvedTerms.id, id));
   }
   
   // Style Tags Methods

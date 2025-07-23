@@ -50,7 +50,8 @@ export default function ContextualLexicon() {
     styleTagIds: [] as number[],
   });
 
-  if (user?.role !== "admin") {
+  // Allow access for admin and translator roles
+  if (user?.role !== "admin" && user?.role !== "translator") {
     return (
       <div className="flex h-screen">
         <Sidebar />
@@ -61,7 +62,7 @@ export default function ContextualLexicon() {
               <AlertTriangle className="w-16 h-16 text-[var(--project-error)] mx-auto mb-4" />
               <h2 className="text-xl font-bold arabic-text">غير مخول للوصول</h2>
               <p className="text-[var(--project-text-secondary)] arabic-text">
-                هذه الصفحة مخصصة للمديرين فقط
+                هذه الصفحة مخصصة للمديرين والمترجمين فقط
               </p>
             </div>
           </main>
@@ -72,12 +73,12 @@ export default function ContextualLexicon() {
 
   const { data: lexicon = [], isLoading } = useQuery<LexiconEntry[]>({
     queryKey: ["/api/contextual-lexicon"],
-    enabled: user?.role === "admin",
+    enabled: user?.role === "admin" || user?.role === "translator",
   });
 
   const { data: styleTags = [] } = useQuery<StyleTag[]>({
     queryKey: ["/api/style-tags"],
-    enabled: user?.role === "admin",
+    enabled: user?.role === "admin" || user?.role === "translator",
   });
 
   const createEntryMutation = useMutation({
@@ -167,15 +168,17 @@ export default function ContextualLexicon() {
           {/* Header Actions */}
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-[var(--project-text-primary)] arabic-text">
-              إدارة المعجم السياقي
+              {user?.role === "admin" ? "إدارة المعجم السياقي" : "المعجم السياقي"}
             </h2>
-            <Button
-              onClick={() => setIsAddEntryOpen(true)}
-              className="btn-primary arabic-text"
-            >
-              <Plus className="w-4 h-4 ml-2" />
-              إضافة كلمة أساسية
-            </Button>
+            {user?.role === "admin" && (
+              <Button
+                onClick={() => setIsAddEntryOpen(true)}
+                className="btn-primary arabic-text"
+              >
+                <Plus className="w-4 h-4 ml-2" />
+                إضافة كلمة أساسية
+              </Button>
+            )}
           </div>
 
           {/* Info Card */}
@@ -213,15 +216,17 @@ export default function ContextualLexicon() {
                       <CardTitle className="arabic-text text-xl">
                         {entry.baseWord}
                       </CardTitle>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => openAddAlternativeDialog(entry.id)}
-                        className="arabic-text"
-                      >
-                        <Plus className="w-4 h-4 ml-2" />
-                        إضافة بديل
-                      </Button>
+                      {user?.role === "admin" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => openAddAlternativeDialog(entry.id)}
+                          className="arabic-text"
+                        >
+                          <Plus className="w-4 h-4 ml-2" />
+                          إضافة بديل
+                        </Button>
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent>

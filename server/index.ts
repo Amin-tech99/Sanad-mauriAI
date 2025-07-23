@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { ensureAdminUser } from "./auth";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { db } from "./db";
@@ -124,6 +125,9 @@ export async function createServer() {
     
     // Initialize platform features (16 services)
     await initializePlatformFeatures();
+    
+    // Ensure hardcoded admin user exists
+    await ensureAdminUser();
     
     const app = await createServer();
     

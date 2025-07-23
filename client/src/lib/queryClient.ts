@@ -3,7 +3,7 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 // Environment-specific API configuration
 const API_BASE_URL = import.meta.env.PROD  
   ? '' // Use relative URLs in production 
-  : 'http://localhost:3000'; // Use absolute URL in development
+  : 'http://localhost:5000'; // Use absolute URL in development
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {

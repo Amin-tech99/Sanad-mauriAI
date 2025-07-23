@@ -75,6 +75,11 @@ export const usersRelations = relations(users, ({ many }) => ({
   assignedItems: many(workItems, { relationName: "assignedItems" }),
   reviewedItems: many(workItems, { relationName: "reviewedItems" }),
   assignments: many(workItemAssignments),
+  createdConversations: many(conversations, { relationName: "createdConversations" }),
+  assignedConversations: many(conversations, { relationName: "assignedConversations" }),
+  translatedMessages: many(conversationMessages, { relationName: "translatedMessages" }),
+  reviewedMessages: many(conversationMessages, { relationName: "reviewedMessages" }),
+  conversationAssignments: many(conversationAssignments, { relationName: "conversationAssignments" }),
 }));
 
 export const sourcesRelations = relations(sources, ({ one, many }) => ({
@@ -253,6 +258,61 @@ export const wordSuggestions = pgTable("word_suggestions", {
 export const insertWordSuggestionSchema = createInsertSchema(wordSuggestions)
   .omit({ id: true, createdAt: true, reviewedAt: true });
 
+// Conversations table for customer support conversation uploads
+export const conversations = pgTable("conversations", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  customerType: text("customer_type"), // new, returning, vip, premium
+  urgencyLevel: text("urgency_level"), // low, medium, high, urgent
+  category: text("category"), // billing, technical, complaint, inquiry, general
+  originalLanguage: text("original_language").notNull().default("arabic"),
+  targetLanguage: text("target_language").notNull().default("hassaniya"),
+  status: text("status").notNull().default("pending"), // pending, assigned, in_progress, completed, reviewed
+  totalMessages: integer("total_messages").notNull().default(0),
+  userMessages: integer("user_messages").notNull().default(0), // Only user messages that need translation
+  agentMessages: integer("agent_messages").notNull().default(0), // Agent messages (for context only)
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdBy: integer("created_by").references(() => users.id),
+  assignedTo: integer("assigned_to").references(() => users.id),
+  styleTagId: integer("style_tag_id").references(() => styleTags.id), // Style for user messages only
+  completedAt: timestamp("completed_at"),
+});
+
+// Conversation Messages table for individual messages in conversations
+export const conversationMessages = pgTable("conversation_messages", {
+  id: serial("id").primaryKey(),
+  conversationId: integer("conversation_id").notNull().references(() => conversations.id),
+  messageOrder: integer("message_order").notNull(), // Order in conversation
+  messageType: text("message_type").notNull(), // user, agent, system
+  speakerRole: text("speaker_role"), // customer, support_agent, supervisor, system
+  originalText: text("original_text").notNull(),
+  translatedText: text("translated_text"), // Only for user messages
+  needsTranslation: boolean("needs_translation").notNull().default(false), // Only user messages
+  context: text("context"), // Additional context for this message
+  emotionalTone: text("emotional_tone"), // happy, neutral, frustrated, angry, confused
+  translationStatus: text("translation_status").default("pending"), // pending, in_progress, completed, reviewed
+  translatedBy: integer("translated_by").references(() => users.id),
+  reviewedBy: integer("reviewed_by").references(() => users.id),
+  qualityScore: integer("quality_score"), // 1-5 scale for translation quality
+  translationNotes: text("translation_notes"), // Translator notes
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  translatedAt: timestamp("translated_at"),
+  reviewedAt: timestamp("reviewed_at"),
+});
+
+// Conversation Assignments table for assigning conversations to translators
+export const conversationAssignments = pgTable("conversation_assignments", {
+  id: serial("id").primaryKey(),
+  conversationId: integer("conversation_id").notNull().references(() => conversations.id),
+  translatorId: integer("translator_id").notNull().references(() => users.id),
+  styleTagId: integer("style_tag_id").references(() => styleTags.id), // Style for this assignment
+  assignedAt: timestamp("assigned_at").defaultNow().notNull(),
+  assignedBy: integer("assigned_by").references(() => users.id),
+  status: text("status").notNull().default("active"), // active, completed, reassigned
+  completedAt: timestamp("completed_at"),
+});
+
 // Platform Features table for admin control
 export const platformFeatures = pgTable("platform_features", {
   id: serial("id").primaryKey(),
@@ -264,6 +324,84 @@ export const platformFeatures = pgTable("platform_features", {
   dependencies: text("dependencies").array(), // Array of feature keys this depends on
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   updatedBy: integer("updated_by").references(() => users.id),
+});
+
+// Relations for conversations
+export const conversationsRelations = relations(conversations, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [conversations.createdBy],
+    references: [users.id],
+    relationName: "createdConversations",
+  }),
+  assignee: one(users, {
+    fields: [conversations.assignedTo],
+    references: [users.id],
+    relationName: "assignedConversations",
+  }),
+  styleTag: one(styleTags, {
+    fields: [conversations.styleTagId],
+    references: [styleTags.id],
+  }),
+  messages: many(conversationMessages),
+  assignments: many(conversationAssignments),
+}));
+
+export const conversationMessagesRelations = relations(conversationMessages, ({ one }) => ({
+  conversation: one(conversations, {
+    fields: [conversationMessages.conversationId],
+    references: [conversations.id],
+  }),
+  translator: one(users, {
+    fields: [conversationMessages.translatedBy],
+    references: [users.id],
+    relationName: "translatedMessages",
+  }),
+  reviewer: one(users, {
+    fields: [conversationMessages.reviewedBy],
+    references: [users.id],
+    relationName: "reviewedMessages",
+  }),
+}));
+
+export const conversationAssignmentsRelations = relations(conversationAssignments, ({ one }) => ({
+  conversation: one(conversations, {
+    fields: [conversationAssignments.conversationId],
+    references: [conversations.id],
+  }),
+  translator: one(users, {
+    fields: [conversationAssignments.translatorId],
+    references: [users.id],
+    relationName: "conversationAssignments",
+  }),
+  assignedBy: one(users, {
+    fields: [conversationAssignments.assignedBy],
+    references: [users.id],
+    relationName: "assignedConversations",
+  }),
+  styleTag: one(styleTags, {
+    fields: [conversationAssignments.styleTagId],
+    references: [styleTags.id],
+  }),
+}));
+
+// Insert schemas for conversations
+export const insertConversationSchema = createInsertSchema(conversations).omit({
+  id: true,
+  createdAt: true,
+  completedAt: true,
+});
+
+export const insertConversationMessageSchema = createInsertSchema(conversationMessages).omit({
+  id: true,
+  createdAt: true,
+  translatedAt: true,
+  reviewedAt: true,
+});
+
+export const insertConversationAssignmentSchema = createInsertSchema(conversationAssignments).omit({
+  id: true,
+  assignedAt: true,
+  completedAt: true,
 });
 
 // Insert schema for platform features
@@ -294,3 +432,9 @@ export type WordSuggestion = typeof wordSuggestions.$inferSelect;
 export type InsertWordSuggestion = z.infer<typeof insertWordSuggestionSchema>;
 export type PlatformFeature = typeof platformFeatures.$inferSelect;
 export type InsertPlatformFeature = z.infer<typeof insertPlatformFeatureSchema>;
+export type Conversation = typeof conversations.$inferSelect;
+export type InsertConversation = z.infer<typeof insertConversationSchema>;
+export type ConversationMessage = typeof conversationMessages.$inferSelect;
+export type InsertConversationMessage = z.infer<typeof insertConversationMessageSchema>;
+export type ConversationAssignment = typeof conversationAssignments.$inferSelect;
+export type InsertConversationAssignment = z.infer<typeof insertConversationAssignmentSchema>;

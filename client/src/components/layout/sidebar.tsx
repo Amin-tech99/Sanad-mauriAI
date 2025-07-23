@@ -21,40 +21,59 @@ import {
   Library,
   Shield,
   LogOut,
-  X
+  X,
+  MessageCircle,
+  Home,
+  Settings,
+  Briefcase,
+  HelpCircle,
+  Smartphone
 } from "lucide-react";
 
 const roleNavigation = {
   admin: [
     {
-      section: "الإدارة الرئيسية",
+      section: "الرئيسية",
       items: [
-        { icon: BarChart3, text: "لوحة التحكم", path: "/" },
-        { icon: Shield, text: "التحكم في المنصة", path: "/platform-control" },
+        { icon: Home, text: "لوحة التحكم", path: "/dashboard" },
+        { icon: BarChart3, text: "التحليلات المتقدمة", path: "/analytics" },
+      ]
+    },
+    {
+      section: "إدارة النظام",
+      items: [
+        { icon: Settings, text: "التحكم في المنصة", path: "/platform-control" },
         { icon: Users, text: "إدارة المستخدمين", path: "/users" },
       ]
     },
     {
-      section: "إدارة المحتوى",
+      section: "إدارة المحتوى والمشاريع",
       items: [
         { icon: BookOpen, text: "مكتبة المصادر", path: "/sources" },
         { icon: FileText, text: "نماذج التعليمات", path: "/templates" },
-        { icon: Package, text: "إنشاء حزم العمل", path: "/work-packets" },
+        { icon: Briefcase, text: "إنشاء حزم العمل", path: "/work-packets" },
       ]
     },
     {
-      section: "أدوات اللغة",
+      section: "أدوات اللغة والترجمة",
       items: [
         { icon: Languages, text: "المصطلحات المعتمدة", path: "/approved-terms" },
         { icon: Tag, text: "تصنيفات الأسلوب", path: "/style-tags" },
         { icon: Library, text: "المعجم السياقي", path: "/contextual-lexicon" },
-        { icon: FileText, text: "اقتراحات الكلمات", path: "/word-suggestions" },
+        { icon: HelpCircle, text: "اقتراحات الكلمات", path: "/word-suggestions" },
       ]
     },
     {
-      section: "البيانات والتصدير",
+      section: "التواصل والمراجعة",
       items: [
-        { icon: BarChart3, text: "التحليلات المتقدمة", path: "/analytics" },
+        { icon: MessageCircle, text: "إدارة المحادثات", path: "/conversations" },
+        { icon: CheckCircle, text: "مراجعة الجودة", path: "/qa-review" },
+        { icon: ClipboardList, text: "قائمة المهام", path: "/qa-queue" },
+      ]
+    },
+    {
+      section: "البيانات والتقارير",
+      items: [
         { icon: Download, text: "تصدير البيانات", path: "/export" },
       ]
     }
@@ -63,8 +82,17 @@ const roleNavigation = {
     {
       section: "مساحة العمل",
       items: [
-        { icon: ClipboardList, text: "قائمة مهامي", path: "/my-work" },
-        { icon: Edit, text: "مساحة العمل", path: "/workspace" },
+        { icon: Home, text: "قائمة مهامي", path: "/my-work" },
+        { icon: Edit, text: "مساحة الترجمة", path: "/workspace" },
+        { icon: Smartphone, text: "مساحة العمل المحمولة", path: "/mobile-workspace" },
+      ]
+    },
+    {
+      section: "أدوات المساعدة",
+      items: [
+        { icon: Languages, text: "المصطلحات المعتمدة", path: "/approved-terms" },
+        { icon: Library, text: "المعجم السياقي", path: "/contextual-lexicon" },
+        { icon: MessageCircle, text: "المحادثات", path: "/conversations" },
       ]
     }
   ],
@@ -72,8 +100,18 @@ const roleNavigation = {
     {
       section: "مراجعة الجودة",
       items: [
-        { icon: CheckCircle, text: "مهام المراجعة", path: "/qa-queue" },
-        { icon: Search, text: "مراجعة الجودة", path: "/qa-review" },
+        { icon: Home, text: "مهام المراجعة", path: "/qa-queue" },
+        { icon: CheckCircle, text: "مساحة المراجعة", path: "/qa-review" },
+        { icon: ClipboardList, text: "قائمة المهام المكتملة", path: "/my-work" },
+      ]
+    },
+    {
+      section: "أدوات المراجعة",
+      items: [
+        { icon: Languages, text: "المصطلحات المعتمدة", path: "/approved-terms" },
+        { icon: Library, text: "المعجم السياقي", path: "/contextual-lexicon" },
+        { icon: HelpCircle, text: "اقتراحات الكلمات", path: "/word-suggestions" },
+        { icon: MessageCircle, text: "المحادثات", path: "/conversations" },
       ]
     }
   ],

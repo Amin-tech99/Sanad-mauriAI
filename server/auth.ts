@@ -28,6 +28,41 @@ async function comparePasswords(supplied: string, stored: string) {
   return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
+// Create hardcoded admin user if it doesn't exist
+export async function ensureAdminUser() {
+  const adminUsername = "admin";
+  const adminPassword = "admin123";
+  
+  try {
+    const existingAdmin = await storage.getUserByUsername(adminUsername);
+    
+    if (!existingAdmin) {
+      console.log("Creating hardcoded admin user...");
+      const hashedPassword = await hashPassword(adminPassword);
+      
+      const adminUser = await storage.createUser({
+        username: adminUsername,
+        password: hashedPassword,
+        role: "admin",
+        isActive: true
+      });
+      
+      console.log(`✅ Hardcoded admin user created successfully!`);
+      console.log(`   Username: ${adminUsername}`);
+      console.log(`   Password: ${adminPassword}`);
+      console.log(`   Role: admin`);
+      
+      return adminUser;
+    } else {
+      console.log("✅ Hardcoded admin user already exists");
+      return existingAdmin;
+    }
+  } catch (error) {
+    console.error("❌ Error creating hardcoded admin user:", error);
+    throw error;
+  }
+}
+
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET!,
